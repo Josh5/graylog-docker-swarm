@@ -1,0 +1,1 @@
+# Graylog on Docker Swarm
