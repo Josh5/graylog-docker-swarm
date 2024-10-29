@@ -5,7 +5,7 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Tuesday, 29th October 2024 4:27:13 pm
+# Last Modified: Tuesday, 29th October 2024 5:38:57 pm
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 set -eu
@@ -51,7 +51,7 @@ pipeline:
       bucket                        ${AWS_COLD_STORAGE_BUCKET_NAME:?}
       region                        ${AWS_COLD_STORAGE_BUCKET_REGION:?}
       total_file_size               10M
-      s3_key_format                 /\$TAG/%Y/%m/%d/%H_%M_%S-\$UUID.txt.gz
+      s3_key_format                 /$TAG/%Y/%m/%d/%H_%M_%S-$UUID.txt.gz
       use_put_object                On
       compression                   gzip
       store_dir                     ${FLUENT_STORAGE_PATH:?}/s3_buffer
@@ -79,7 +79,6 @@ pipeline:
       gelf_full_message_key: message
       gelf_host_key: source
       retry_limit: 6
-      retry_interval: 10
 EOF
 fi
 
