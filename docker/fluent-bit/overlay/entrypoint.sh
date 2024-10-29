@@ -5,7 +5,7 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Tuesday, 29th October 2024 8:54:57 pm
+# Last Modified: Tuesday, 29th October 2024 9:07:58 pm
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 set -eu
@@ -93,8 +93,8 @@ if [[ -n "${ENABLE_FORWARD_TLS:-}" && "${ENABLE_FORWARD_TLS,,}" =~ ^(true|t)$ ]]
                 i=$((i + 1))
             done
             # Sleep here to wait long enough to ensure nginx is running
-            print_log "info" "Pausing startup for 60 seconds to ensure Nginx service has completed startup for certbot certifiacte creation..."
-            sleep 60
+            print_log "info" "Pausing startup for 10 seconds to ensure Nginx service has completed startup for certbot certifiacte creation..."
+            sleep 10
             echo
 
             print_log "info" "Running certbot command..."
