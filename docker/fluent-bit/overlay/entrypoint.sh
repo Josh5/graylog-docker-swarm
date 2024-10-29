@@ -5,7 +5,7 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Tuesday, 29th October 2024 7:03:14 pm
+# Last Modified: Tuesday, 29th October 2024 7:06:20 pm
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 set -eu
@@ -93,7 +93,7 @@ if [[ -n "${ENABLE_FORWARD_TLS:-}" && "${ENABLE_FORWARD_TLS,,}" =~ ^(true|t)$ ]]
     fi
 
     if [ ! -f "${CERTIFICATE_FILE_PATH:?}" ]; then
-        print_log "info" "Certificate ${CERTIFICATE_FILE_PATH:?} does not exsit. Creating a new one."
+        print_log "info" "Certificate ${CERTIFICATE_FILE_PATH:?} does not exist. Creating a new one."
         if [ "X${CERT_FQDN:-}" != "X" ]; then
             HOST_HOSTNAME="${CERT_FQDN:?}"
         fi
@@ -116,7 +116,7 @@ if [[ -n "${ENABLE_FORWARD_TLS:-}" && "${ENABLE_FORWARD_TLS,,}" =~ ^(true|t)$ ]]
             echo
 
             print_log "info" "Running certbot command..."
-            rm -rf "${CERTS_DIRECTORY:?}"/letsencrypt
+            rm -rf "${CERTIFICATES_DIRECTORY:?}"/letsencrypt
             certbot certonly \
                 --webroot \
                 --webroot-path /var/www/certbot \
@@ -125,12 +125,12 @@ if [[ -n "${ENABLE_FORWARD_TLS:-}" && "${ENABLE_FORWARD_TLS,,}" =~ ^(true|t)$ ]]
                 --agree-tos \
                 --no-eff-email \
                 --non-interactive \
-                --config-dir "${CERTS_DIRECTORY:?}"/letsencrypt/etc \
-                --logs-dir "${CERTS_DIRECTORY:?}"/letsencrypt/logs \
-                --work-dir "${CERTS_DIRECTORY:?}"/letsencrypt/work
+                --config-dir "${CERTIFICATES_DIRECTORY:?}"/letsencrypt/etc \
+                --logs-dir "${CERTIFICATES_DIRECTORY:?}"/letsencrypt/logs \
+                --work-dir "${CERTIFICATES_DIRECTORY:?}"/letsencrypt/work
             cat \
-                "${CERTS_DIRECTORY:?}/letsencrypt/etc/live/${CERT_FQDN:?}/fullchain.pem" \
-                "${CERTS_DIRECTORY:?}/letsencrypt/etc/live/${CERT_FQDN:?}/privkey.pem" \
+                "${CERTIFICATES_DIRECTORY:?}/letsencrypt/etc/live/${CERT_FQDN:?}/fullchain.pem" \
+                "${CERTIFICATES_DIRECTORY:?}/letsencrypt/etc/live/${CERT_FQDN:?}/privkey.pem" \
                 >"${CERTIFICATE_FILE_PATH:?}"
         else
             print_log "info" "Creating self-signed certificate ${CERTIFICATE_FILE_PATH:?}..."
