@@ -57,5 +57,5 @@ ENV \
     ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT=false \
     ENABLE_GRAYLOG_GELF_OUTPUT=true
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/entrypoint.sh"]
 CMD []
