@@ -5,7 +5,7 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Tuesday, 29th October 2024 7:06:20 pm
+# Last Modified: Tuesday, 29th October 2024 8:38:08 pm
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 set -eu
@@ -158,17 +158,18 @@ pipeline:
   outputs:
     # S3 Bucket cold storage output
     - name: s3
-      match_regex:                  ^flb_glf(?!.*cld_st).*
-      bucket                        ${AWS_COLD_STORAGE_BUCKET_NAME:?}
-      region                        ${AWS_COLD_STORAGE_BUCKET_REGION:?}
-      total_file_size               10M
-      s3_key_format                 /$TAG/%Y/%m/%d/%H_%M_%S-$UUID.txt.gz
-      use_put_object                On
-      compression                   gzip
-      store_dir                     ${FLUENT_STORAGE_PATH:?}/s3_buffer
-      upload_timeout                10m
-      retry_limit                   5
+      match_regex: ^flb_glf(?!.*cld_st).*
+      bucket: ${AWS_COLD_STORAGE_BUCKET_NAME:?}
+      region: ${AWS_COLD_STORAGE_BUCKET_REGION:?}
+      total_file_size: 10M
+      s3_key_format: /\$TAG/%Y/%m/%d/%H_%M_%S-\$UUID.txt.gz
+      use_put_object: On
+      compression: gzip
+      store_dir: ${FLUENT_STORAGE_PATH:?}/s3_buffer
+      upload_timeout: 10m
+      retry_limit: 5
 EOF
+    cat /etc/fluent-bit/fluent-bit.s3-cold-storage.output.yaml
 fi
 
 if [[ -z "${ENABLE_GRAYLOG_GELF_OUTPUT:-}" || "${ENABLE_GRAYLOG_GELF_OUTPUT,,}" =~ ^(false|f)$ ]]; then
@@ -191,6 +192,7 @@ pipeline:
       gelf_host_key: source
       retry_limit: 6
 EOF
+    cat /etc/fluent-bit/fluent-bit.graylog-gelf.output.yaml
 fi
 
 ################################################
