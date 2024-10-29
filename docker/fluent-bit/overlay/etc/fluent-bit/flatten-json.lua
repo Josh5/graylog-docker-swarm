@@ -4,7 +4,7 @@
 --File Created: Tuesday, 29th October 2024 2:29:53 pm
 --Author: Josh5 (jsunnex@gmail.com)
 -------
---Last Modified: Tuesday, 29th October 2024 3:22:29 pm
+--Last Modified: Tuesday, 29th October 2024 5:45:57 pm
 --Modified By: Josh5 (jsunnex@gmail.com)
 --]]
 
@@ -25,7 +25,7 @@ function flatten_json(tag, timestamp, record)
         -- Check if the value is a string
         if type(value) == "string" then
             local success, decoded_value = is_json(value)
-            if success then
+            if success and type(decoded_value) == "table" then
                 -- If the value is valid JSON, merge it into new_record
                 for k, v in pairs(decoded_value) do
                     new_record[k] = v
