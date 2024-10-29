@@ -13,6 +13,11 @@ RUN \
             gnupg \
             tini \
     && \
+    echo "**** install wait-for-it script ****" \
+        && curl https://raw.githubusercontent.com/vishnubob/wait-for-it/81b1373f17855a4dc21156cfe1694c31d7d1792e/wait-for-it.sh \
+            -o /usr/bin/wait-for-it \
+        && chmod +x /usr/bin/wait-for-it \
+    && \
     echo "**** install Fluent-bit ****" \
         && curl https://raw.githubusercontent.com/fluent/fluent-bit/master/install.sh \
             -o /tmp/install.sh \

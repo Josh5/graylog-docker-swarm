@@ -5,7 +5,7 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Tuesday, 29th October 2024 8:38:08 pm
+# Last Modified: Tuesday, 29th October 2024 8:54:57 pm
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 set -eu
@@ -28,24 +28,6 @@ print_log "info" "Creating any missing directories."
 mkdir -p \
     "${FLUENT_STORAGE_PATH:?}" \
     "${CERTIFICATES_DIRECTORY:?}"
-
-################################################
-# --- Wait for Graylog to start
-#
-# TODO: Wait for GLEF to be available
-print_log "info" "Waiting for GrayLog to be available..."
-# read -t 5 < /dev/zero
-# i=1
-# while [ $i -le 60 ]; do
-#     if [ -f "${PEM_FILE:?}" ]; then
-#         echo "  - The Certificates are avaiable"
-#         break
-#     fi
-#     echo "  - Certificate config container check #$i - Certificates not yet created. Recheck in 10 seconds..."
-#     read -t 10 < /dev/zero
-#     i=$((i + 1))
-# done
-# echo
 
 ################################################
 # --- Create certificates
