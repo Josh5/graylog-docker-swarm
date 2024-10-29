@@ -42,13 +42,13 @@ ENV \
     FORWARD_SHARED_KEY=1234567890 \
     FLUENT_STORAGE_PATH=/var/fluent-bit/storage \
     ENABLE_FORWARD_TLS=true \
+    CERTIFICATES_DIRECTORY=/etc/fluent-bit/certs \
     USE_EXISTING_CERT=false \
     EXISTING_KEY_PATH=/etc/fluent-bit/certs/1.key \
     EXISTING_CERT_PATH=/etc/fluent-bit/certs/1.pem \
-    CERTIFICATE_KEY_FILE_PATH=/etc/fluent-bit/certs/fluent-bit.key \
-    CERTIFICATE_FILE_PATH=/etc/fluent-bit/certs/fluent-bit.pem \
-    CERT_FQDN=example.com \
     USE_CERTBOT_TO_GENERATE_KEY=false \
+    CERT_FQDN=example.com \
+    CERT_EMAIL=admin@example.com \
     ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT=false \
     ENABLE_GRAYLOG_GELF_OUTPUT=true
 

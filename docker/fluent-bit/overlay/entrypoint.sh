@@ -5,7 +5,7 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Tuesday, 29th October 2024 6:39:29 pm
+# Last Modified: Tuesday, 29th October 2024 7:03:14 pm
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 set -eu
@@ -21,8 +21,17 @@ print_log() {
     echo "[${timestamp}] [ ${level}] ${message}"
 }
 
-# PEM_FILE="/fluentd-data/certs/fluent.${CONFIG_VERSION}.pem"
+################################################
+# --- Create Missing Directories
+#
+print_log "info" "Creating any missing directories."
+mkdir -p \
+    "${FLUENT_STORAGE_PATH:?}" \
+    "${CERTIFICATES_DIRECTORY:?}"
 
+################################################
+# --- Wait for Graylog to start
+#
 # TODO: Wait for GLEF to be available
 print_log "info" "Waiting for GrayLog to be available..."
 # read -t 5 < /dev/zero
@@ -38,8 +47,11 @@ print_log "info" "Waiting for GrayLog to be available..."
 # done
 # echo
 
-print_log "info" "Generating certificates"
-mkdir -p "$(dirname "${CERTIFICATE_FILE_PATH:?}")"
+################################################
+# --- Create certificates
+#
+print_log "info" "Generating certificates in '${CERTIFICATES_DIRECTORY:?}'"
+export CERTIFICATE_FILE_PATH="${CERTIFICATES_DIRECTORY:?}/fluent-bit.pem"
 if [[ -n "${ENABLE_FORWARD_TLS:-}" && "${ENABLE_FORWARD_TLS,,}" =~ ^(true|t)$ ]]; then
     if [ -f "${CERTIFICATE_FILE_PATH:?}" ]; then
         print_log "info" "Checking expiration date on existing ${CERTIFICATE_FILE_PATH:?}"
@@ -70,7 +82,7 @@ if [[ -n "${ENABLE_FORWARD_TLS:-}" && "${ENABLE_FORWARD_TLS,,}" =~ ^(true|t)$ ]]
     fi
 
     if [[ -z "${USE_EXISTING_CERT:-}" || "${USE_EXISTING_CERT,,}" =~ ^(false|f)$ ]]; then
-        print_log "info" "Configured to not using an existing cert."
+        print_log "info" "Configured to not use an existing cert."
     else
         if [ -f "${EXISTING_KEY_PATH:-}" ] && [ -f "${EXISTING_CERT_PATH:-}" ]; then
             print_log "info" "Using supplied ${EXISTING_KEY_PATH:?} and ${EXISTING_CERT_PATH:?} files to create ${CERTIFICATE_FILE_PATH:?}."
@@ -81,6 +93,7 @@ if [[ -n "${ENABLE_FORWARD_TLS:-}" && "${ENABLE_FORWARD_TLS,,}" =~ ^(true|t)$ ]]
     fi
 
     if [ ! -f "${CERTIFICATE_FILE_PATH:?}" ]; then
+        print_log "info" "Certificate ${CERTIFICATE_FILE_PATH:?} does not exsit. Creating a new one."
         if [ "X${CERT_FQDN:-}" != "X" ]; then
             HOST_HOSTNAME="${CERT_FQDN:?}"
         fi
@@ -98,11 +111,12 @@ if [[ -n "${ENABLE_FORWARD_TLS:-}" && "${ENABLE_FORWARD_TLS,,}" =~ ^(true|t)$ ]]
                 i=$((i + 1))
             done
             # Sleep here to wait long enough to ensure nginx is running
+            print_log "info" "Pausing startup for 60 seconds to ensure Nginx service has completed startup for certbot certifiacte creation..."
             sleep 60
             echo
 
             print_log "info" "Running certbot command..."
-            rm -rf /fluent-bit-data/certs/letsencrypt
+            rm -rf "${CERTS_DIRECTORY:?}"/letsencrypt
             certbot certonly \
                 --webroot \
                 --webroot-path /var/www/certbot \
@@ -111,14 +125,12 @@ if [[ -n "${ENABLE_FORWARD_TLS:-}" && "${ENABLE_FORWARD_TLS,,}" =~ ^(true|t)$ ]]
                 --agree-tos \
                 --no-eff-email \
                 --non-interactive \
-                --config-dir /fluent-bit-data/certs/letsencrypt/etc \
-                --logs-dir /fluent-bit-data/certs/letsencrypt/logs \
-                --work-dir /fluent-bit-data/certs/letsencrypt/work
-            ls -la /var/www/certbot
-            ls -la /fluent-bit-data/certs
+                --config-dir "${CERTS_DIRECTORY:?}"/letsencrypt/etc \
+                --logs-dir "${CERTS_DIRECTORY:?}"/letsencrypt/logs \
+                --work-dir "${CERTS_DIRECTORY:?}"/letsencrypt/work
             cat \
-                "/fluent-bit-data/certs/letsencrypt/etc/live/${CERT_FQDN:?}/fullchain.pem" \
-                "/fluent-bit-data/certs/letsencrypt/etc/live/${CERT_FQDN:?}/privkey.pem" \
+                "${CERTS_DIRECTORY:?}/letsencrypt/etc/live/${CERT_FQDN:?}/fullchain.pem" \
+                "${CERTS_DIRECTORY:?}/letsencrypt/etc/live/${CERT_FQDN:?}/privkey.pem" \
                 >"${CERTIFICATE_FILE_PATH:?}"
         else
             print_log "info" "Creating self-signed certificate ${CERTIFICATE_FILE_PATH:?}..."
@@ -134,6 +146,9 @@ if [[ -n "${ENABLE_FORWARD_TLS:-}" && "${ENABLE_FORWARD_TLS,,}" =~ ^(true|t)$ ]]
     fi
 fi
 
+################################################
+# --- Configure Fluent-bit
+#
 if [[ -z "${ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT:-}" || "${ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT,,}" =~ ^(false|f)$ ]]; then
     print_log "info" "Leaving S3 Bucket cold storage output disabled"
 else
@@ -178,7 +193,8 @@ pipeline:
 EOF
 fi
 
-mkdir -p "${FLUENT_STORAGE_PATH:?}"
-
+################################################
+# --- Run Fluent-bit
+#
 print_log "info" "Starting Fluent-Bit"
 exec /opt/fluent-bit/bin/fluent-bit -c /etc/fluent-bit/fluent-bit.yaml

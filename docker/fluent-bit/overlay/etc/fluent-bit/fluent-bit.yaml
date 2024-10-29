@@ -79,8 +79,8 @@ pipeline:
       storage.type: filesystem
       tls: ${ENABLE_FORWARD_TLS}
       tls.verify: off
-      tls.key_file: ${CERTIFICATE_KEY_FILE_PATH}
-      tls.crt_file: ${CERTIFICATE_FILE_PATH}
+      tls.key_file: ${CERTIFICATES_DIRECTORY}/fluent-bit.pem
+      tls.crt_file: ${CERTIFICATES_DIRECTORY}/fluent-bit.pem
 
   filters:
     # Ensure any JSON logs are evaluated and flattened
