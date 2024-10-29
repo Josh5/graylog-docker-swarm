@@ -5,7 +5,7 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Tuesday, 29th October 2024 5:38:57 pm
+# Last Modified: Tuesday, 29th October 2024 6:39:29 pm
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 set -eu
@@ -38,7 +38,103 @@ print_log "info" "Waiting for GrayLog to be available..."
 # done
 # echo
 
-if [[ -z "${ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT:-}" || "${ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT,,}" =~ ^(false|f|0|1)$ ]]; then
+print_log "info" "Generating certificates"
+mkdir -p "$(dirname "${CERTIFICATE_FILE_PATH:?}")"
+if [[ -n "${ENABLE_FORWARD_TLS:-}" && "${ENABLE_FORWARD_TLS,,}" =~ ^(true|t)$ ]]; then
+    if [ -f "${CERTIFICATE_FILE_PATH:?}" ]; then
+        print_log "info" "Checking expiration date on existing ${CERTIFICATE_FILE_PATH:?}"
+        # Days before expiration to check
+        DAYS_BEFORE_EXPIRATION=14
+        # Get the expiration date of the certificate in seconds since epoch
+        EXPIRATION_DATE=$(openssl x509 -enddate -noout -in "${CERTIFICATE_FILE_PATH:?}" | cut -d= -f2 || echo "Unable to load certificate")
+        if [ "X${EXPIRATION_DATE:-}" = "X" ]; then
+            # Invalid file
+            print_log "info" "Certificate ${CERTIFICATE_FILE_PATH:?} appears to be invalid. Deleting..."
+            rm -f "${CERTIFICATE_FILE_PATH:?}"
+        else
+            date -d "$(echo $EXPIRATION_DATE | sed "s/ GMT//")" +%s
+            EXPIRATION_DATE_EPOCH=$(date -d "$(echo $EXPIRATION_DATE | sed "s/ GMT//")" +%s 2>/dev/null)
+            # Get the current date in seconds since epoch
+            CURRENT_DATE_EPOCH=$(date +%s)
+            # Calculate the number of seconds in 14 days (14 * 86400)
+            THRESHOLD=$((DAYS_BEFORE_EXPIRATION * 86400))
+            # Check if the certificate will expire within the next 14 days
+            if [ "$((EXPIRATION_DATE_EPOCH - CURRENT_DATE_EPOCH))" -lt "$THRESHOLD" ]; then
+                # Not After date is earlier or equal to the current date (expired or expiring today)
+                print_log "info" "Certificate ${CERTIFICATE_FILE_PATH:?} has expired or is expiring in the next 14 days. Deleting..."
+                rm -f "${CERTIFICATE_FILE_PATH:?}"
+            else
+                print_log "info" "Certificate ${CERTIFICATE_FILE_PATH:?} is still valid until ${EXPIRATION_DATE:?}."
+            fi
+        fi
+    fi
+
+    if [[ -z "${USE_EXISTING_CERT:-}" || "${USE_EXISTING_CERT,,}" =~ ^(false|f)$ ]]; then
+        print_log "info" "Configured to not using an existing cert."
+    else
+        if [ -f "${EXISTING_KEY_PATH:-}" ] && [ -f "${EXISTING_CERT_PATH:-}" ]; then
+            print_log "info" "Using supplied ${EXISTING_KEY_PATH:?} and ${EXISTING_CERT_PATH:?} files to create ${CERTIFICATE_FILE_PATH:?}."
+            cat ${EXISTING_KEY_PATH:?} ${EXISTING_CERT_PATH:?} >"${CERTIFICATE_FILE_PATH:?}"
+        else
+            print_log "info" "Configured to use an existing cert, but no EXISTING_KEY_PATH variable configured or the path in the variable EXISTING_KEY_PATH does not exsist."
+        fi
+    fi
+
+    if [ ! -f "${CERTIFICATE_FILE_PATH:?}" ]; then
+        if [ "X${CERT_FQDN:-}" != "X" ]; then
+            HOST_HOSTNAME="${CERT_FQDN:?}"
+        fi
+        if [[ -n "${USE_CERTBOT_TO_GENERATE_KEY:-}" && "${USE_CERTBOT_TO_GENERATE_KEY,,}" =~ ^(true|t)$ ]]; then
+            print_log "info" "Waiting for Nginx proxy container..."
+            sleep 5
+            i=1
+            while [ $i -le 60 ]; do
+                if [ -f "/var/www/certbot/.proxy-running" ]; then
+                    print_log "info" "  - The Nginx proxy container is running"
+                    break
+                fi
+                print_log "info" "  - Nginx proxy container check #$i - Not yet running. Recheck in 5 seconds..."
+                sleep 5
+                i=$((i + 1))
+            done
+            # Sleep here to wait long enough to ensure nginx is running
+            sleep 60
+            echo
+
+            print_log "info" "Running certbot command..."
+            rm -rf /fluent-bit-data/certs/letsencrypt
+            certbot certonly \
+                --webroot \
+                --webroot-path /var/www/certbot \
+                -d ${HOST_HOSTNAME:?} \
+                --email ${CERT_EMAIL:?} \
+                --agree-tos \
+                --no-eff-email \
+                --non-interactive \
+                --config-dir /fluent-bit-data/certs/letsencrypt/etc \
+                --logs-dir /fluent-bit-data/certs/letsencrypt/logs \
+                --work-dir /fluent-bit-data/certs/letsencrypt/work
+            ls -la /var/www/certbot
+            ls -la /fluent-bit-data/certs
+            cat \
+                "/fluent-bit-data/certs/letsencrypt/etc/live/${CERT_FQDN:?}/fullchain.pem" \
+                "/fluent-bit-data/certs/letsencrypt/etc/live/${CERT_FQDN:?}/privkey.pem" \
+                >"${CERTIFICATE_FILE_PATH:?}"
+        else
+            print_log "info" "Creating self-signed certificate ${CERTIFICATE_FILE_PATH:?}..."
+            openssl req -new -x509 \
+                -days 1095 \
+                -newkey rsa:4096 \
+                -sha256 \
+                -nodes \
+                -keyout "${CERTIFICATE_FILE_PATH:?}" \
+                -out "${CERTIFICATE_FILE_PATH:?}" \
+                -subj "/CN=${HOST_HOSTNAME:?}"
+        fi
+    fi
+fi
+
+if [[ -z "${ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT:-}" || "${ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT,,}" =~ ^(false|f)$ ]]; then
     print_log "info" "Leaving S3 Bucket cold storage output disabled"
 else
     print_log "info" "Adding S3 Bucket cold storage output"
@@ -60,7 +156,7 @@ pipeline:
 EOF
 fi
 
-if [[ -z "${ENABLE_GRAYLOG_GELF_OUTPUT:-}" || "${ENABLE_GRAYLOG_GELF_OUTPUT,,}" =~ ^(false|f|0|1)$ ]]; then
+if [[ -z "${ENABLE_GRAYLOG_GELF_OUTPUT:-}" || "${ENABLE_GRAYLOG_GELF_OUTPUT,,}" =~ ^(false|f)$ ]]; then
     print_log "info" "Leaving Graylog GELF output disabled"
 else
     print_log "info" "Adding Graylog GELF output"
