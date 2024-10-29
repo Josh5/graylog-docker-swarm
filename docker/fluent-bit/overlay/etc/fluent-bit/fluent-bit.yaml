@@ -74,7 +74,7 @@ pipeline:
     - name: forward
       listen: 0.0.0.0
       port: 24224
-      shared_key: ${FLUENT_SHARED_KEY}
+      shared_key: ${FORWARD_SHARED_KEY}
       self_hostname: ${HOST_HOSTNAME}
       storage.type: filesystem
       tls: ${ENABLE_FORWARD_TLS}

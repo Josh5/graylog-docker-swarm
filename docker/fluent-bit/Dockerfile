@@ -38,6 +38,7 @@ ENV \
 COPY overlay/ /
 
 ENV \
+    FORWARD_SHARED_KEY=1234567890 \
     FLUENT_STORAGE_PATH=/var/fluent-bit/storage \
     CERTIFICATE_KEY_FILE_PATH=/etc/fluent-bit/certs/fluent-bit.key \
     CERTIFICATE_FILE_PATH=/etc/fluent-bit/certs/fluent-bit.pem \
