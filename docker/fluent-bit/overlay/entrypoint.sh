@@ -5,7 +5,7 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Tuesday, 29th October 2024 9:07:58 pm
+# Last Modified: Tuesday, 29th October 2024 9:09:42 pm
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 set -eu
@@ -151,7 +151,6 @@ pipeline:
       upload_timeout: 10m
       retry_limit: 5
 EOF
-    cat /etc/fluent-bit/fluent-bit.s3-cold-storage.output.yaml
 fi
 
 if [[ -z "${ENABLE_GRAYLOG_GELF_OUTPUT:-}" || "${ENABLE_GRAYLOG_GELF_OUTPUT,,}" =~ ^(false|f)$ ]]; then
@@ -174,7 +173,6 @@ pipeline:
       gelf_host_key: source
       retry_limit: 6
 EOF
-    cat /etc/fluent-bit/fluent-bit.graylog-gelf.output.yaml
 fi
 
 ################################################
