@@ -39,6 +39,8 @@ COPY overlay/ /
 
 ENV \
     FLUENT_STORAGE_PATH=/var/fluent-bit/storage \
+    CERTIFICATE_KEY_FILE_PATH=/etc/fluent-bit/certs/fluent-bit.key \
+    CERTIFICATE_FILE_PATH=/etc/fluent-bit/certs/fluent-bit.pem \
     ENABLE_FORWARD_TLS=true \
     ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT=false \
     ENABLE_GRAYLOG_GELF_OUTPUT=true
