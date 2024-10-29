@@ -1,8 +1,15 @@
 ---
 
 services:
-  fluentd:
-    image: ghcr.io/josh5/graylog-fluentd-input
+  fluent-bit:
+    image: ghcr.io/josh5/graylog-fluent-bit-input
     build:
-      context: docker/fluentd
+      context: docker/fluent-bit
       dockerfile: Dockerfile
+    ports:
+      - '2020:2020'
+      - '24280:24280'
+      - '24224:24224'
+    environment:
+      - ENABLE_FORWARD_TLS=false
+      - ENABLE_GRAYLOG_GELF_OUTPUT=false

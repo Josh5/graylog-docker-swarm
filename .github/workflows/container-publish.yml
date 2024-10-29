@@ -9,7 +9,7 @@ on:
     - cron: '30 2 * * 6'
 
 jobs:
-  build-fluentd:
+  build-fluent-bit:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -33,16 +33,16 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ vars.REGISTRY }}/${{ vars.FLUENTD_IMAGE_NAME }}
+          images: ${{ vars.REGISTRY }}/${{ vars.FLUENT_BIT_IMAGE_NAME }}
 
       - name: Build and push Container image
         uses: docker/build-push-action@v6
         with:
-          context: docker/fluentd
+          context: docker/fluent-bit
           pull: true
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
-            ${{ vars.REGISTRY }}/${{ vars.FLUENTD_IMAGE_NAME }}:latest
+            ${{ vars.REGISTRY }}/${{ vars.FLUENT_BIT_IMAGE_NAME }}:latest
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
