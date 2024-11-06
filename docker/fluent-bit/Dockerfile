@@ -55,7 +55,11 @@ ENV \
     CERT_FQDN=example.com \
     CERT_EMAIL=admin@example.com \
     ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT=false \
-    ENABLE_GRAYLOG_GELF_OUTPUT=true
+    ENABLE_GRAYLOG_GELF_OUTPUT=true \
+    ENABLE_GRAFANA_LOKI_OUTPUT=true \
+    GRAFANA_LOKI_HOST=loki \
+    GRAFANA_LOKI_PORT=3100 \
+    GRAFANA_LOKI_URI=/logs/loki/api/v1/push
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/entrypoint.sh"]
 CMD []

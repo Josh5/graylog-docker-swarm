@@ -1,5 +1,4 @@
 ---
-
 services:
   fluent-bit:
     image: ghcr.io/josh5/graylog-fluent-bit-input
@@ -7,9 +6,14 @@ services:
       context: docker/fluent-bit
       dockerfile: Dockerfile
     ports:
-      - '2020:2020'
-      - '24280:24280'
-      - '24224:24224'
+      - "2020:2020"
+      - "24280:24280"
+      - "24224:24224"
+      - "24228:24228"
     environment:
-      - ENABLE_FORWARD_TLS=false
-      - ENABLE_GRAYLOG_GELF_OUTPUT=false
+      - ENABLE_FORWARD_TLS=${ENABLE_FORWARD_TLS:?}
+      - ENABLE_GRAYLOG_GELF_OUTPUT=${ENABLE_GRAYLOG_GELF_OUTPUT:?}
+      - ENABLE_GRAFANA_LOKI_OUTPUT=${ENABLE_GRAFANA_LOKI_OUTPUT:?}
+      - GRAFANA_LOKI_HOST=${GRAFANA_LOKI_HOST:?}
+      - GRAFANA_LOKI_PORT=${GRAFANA_LOKI_PORT:?}
+      - GRAFANA_LOKI_URI=${GRAFANA_LOKI_URI:?}

@@ -70,6 +70,26 @@ function graylog_formatting(tag, timestamp, record)
         end
     end
 
+    -- Convert any "source." keys to "source_". Graylog will do this already, but lets do it here so anything
+    --  sent to another index not managed by Graylog will be uniform.
+    for key, value in pairs(record) do
+        if key:match("^source%.") then
+            local new_key = key:gsub("^source%.", "source_")
+            record[new_key] = value
+            record[key] = nil  -- Remove the original "source." key
+        end
+    end
+
+    -- Ensure "service_name" exists. 
+    -- A service name is something required by Open Telemetry semantic conventions. Grafana will automatically apply this as "fluent-bit" if it does not exist.
+    if not record["service_name"] or (type(record["service_name"]) ~= "string" or record["service_name"] == "") then
+        if record["source_service"] and (type(record["source_service"]) == "string" and record["source_service"] ~= "") then
+            record["service_name"] = record["source_service"]   -- Use "source_service" record if it exists and is not empty
+        else
+            record["service_name"] = record["source"]           -- Default to "source" record
+        end
+    end
+
     -- Return the modified record
     return 1, timestamp, record
 end

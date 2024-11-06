@@ -5,9 +5,18 @@
 # File Created: Tuesday, 29th October 2024 1:00:08 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Tuesday, 29th October 2024 2:44:35 pm
+# Last Modified: Wednesday, 6th November 2024 6:03:38 pm
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
+
+run_loop=true
+
+_term() {
+    run_loop=false
+    sudo docker stop test-fluent-bit || true
+    sudo docker rm test-fluent-bit || true
+}
+trap _term SIGTERM SIGINT
 
 loop_run() {
     sudo docker stop test-fluent-bit && sudo docker rm test-fluent-bit
@@ -24,6 +33,8 @@ loop_run() {
     sleep 5
 }
 
-while true;do
+while $run_loop;do
     loop_run
 done
+
+sleep 1

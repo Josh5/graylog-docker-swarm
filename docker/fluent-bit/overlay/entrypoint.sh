@@ -5,7 +5,7 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Tuesday, 29th October 2024 9:09:42 pm
+# Last Modified: Thursday, 7th November 2024 10:49:47 am
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 set -eu
@@ -172,6 +172,26 @@ pipeline:
       gelf_full_message_key: message
       gelf_host_key: source
       retry_limit: 6
+EOF
+fi
+
+if [[ -z "${ENABLE_GRAFANA_LOKI_OUTPUT:-}" || "${ENABLE_GRAFANA_LOKI_OUTPUT,,}" =~ ^(false|f)$ ]]; then
+    print_log "info" "Leaving Grafana Loki output disabled"
+else
+    print_log "info" "Adding Grafana Loki output"
+    cat <<EOF >/etc/fluent-bit/fluent-bit.grafana-loki.output.yaml
+pipeline:
+  outputs:
+    # Grafana Loki output
+    - name: loki
+      match: flb_glf.*
+      host: ${GRAFANA_LOKI_HOST:-}
+      port: ${GRAFANA_LOKI_PORT:-}
+      uri: ${GRAFANA_LOKI_URI:-/loki/api/v1/push}
+      tls: off
+      labels: input=flb_glf
+      label_map_path: /etc/fluent-bit/fluent-bit.grafana-loki.output.logmap.json
+      line_format: json
 EOF
 fi
 

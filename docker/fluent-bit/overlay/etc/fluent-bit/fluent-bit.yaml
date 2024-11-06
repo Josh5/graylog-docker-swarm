@@ -70,6 +70,15 @@ pipeline:
       port: 24280
       storage.type: filesystem
 
+    # Forward input configured PT only (for local docker logs)
+    - name: forward
+      listen: 0.0.0.0
+      port: 24228
+      self_hostname: ${HOST_HOSTNAME}
+      storage.type: filesystem
+      tls: off
+      tls.verify: off
+
     # Forward input configured with TLS certificates
     - name: forward
       listen: 0.0.0.0
@@ -103,3 +112,4 @@ pipeline:
 includes:
   - fluent-bit.s3-cold-storage.output.yaml
   - fluent-bit.graylog-gelf.output.yaml
+  - fluent-bit.grafana-loki.output.yaml
