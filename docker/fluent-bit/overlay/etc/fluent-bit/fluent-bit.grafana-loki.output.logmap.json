@@ -1,16 +1,4 @@
 {
     "service_name": "service_name",
-    "source": "source",
-    "source_account": "source_account",
-    "source_aggregator": "source_aggregator",
-    "source_container_name": "source_container_name",
-    "source_env": "source_env",
-    "source_host": "source_host",
-    "source_id": "source_id",
-    "source_instance_id": "source_instance_id",
-    "source_instance_name": "source_instance_name",
-    "source_null": "source_null",
-    "source_project": "source_project",
-    "source_service": "source_service",
-    "source_version": "source_version"
+    "source": "source"
 }
