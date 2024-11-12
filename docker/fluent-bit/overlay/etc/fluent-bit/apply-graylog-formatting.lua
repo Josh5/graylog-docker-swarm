@@ -4,7 +4,7 @@
 --File Created: Tuesday, 29th October 2024 3:18:29 pm
 --Author: Josh5 (jsunnex@gmail.com)
 -------
---Last Modified: Wednesday, 13th November 2024 9:39:05 am
+--Last Modified: Wednesday, 13th November 2024 9:56:21 am
 --Modified By: Josh5 (jsunnex@gmail.com)
 --]]
 
@@ -13,7 +13,6 @@ function graylog_formatting(tag, timestamp, record)
     -- Create a new record
     local new_record = {}
     for key, value in pairs(record) do
-        print(key, value)
         new_record[key] = value
 
         -- Convert any "source." keys to "source_". Graylog will do this already, but lets do it here so anything
