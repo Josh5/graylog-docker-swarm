@@ -4,7 +4,7 @@
 --File Created: Tuesday, 29th October 2024 3:18:29 pm
 --Author: Josh5 (jsunnex@gmail.com)
 -------
---Last Modified: Tuesday, 29th October 2024 4:28:46 pm
+--Last Modified: Tuesday, 12th November 2024 5:29:36 pm
 --Modified By: Josh5 (jsunnex@gmail.com)
 --]]
 
@@ -73,8 +73,8 @@ function graylog_formatting(tag, timestamp, record)
     -- Convert any "source." keys to "source_". Graylog will do this already, but lets do it here so anything
     --  sent to another index not managed by Graylog will be uniform.
     for key, value in pairs(record) do
-        if key:match("^source%.") then
-            local new_key = key:gsub("^source%.", "source_")
+        if key:sub(1, 7) == "source." then
+            local new_key = "source_" .. key:sub(8)
             record[new_key] = value
             record[key] = nil  -- Remove the original "source." key
         end

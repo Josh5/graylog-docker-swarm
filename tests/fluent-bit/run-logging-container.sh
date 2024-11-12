@@ -5,7 +5,7 @@
 # File Created: Wednesday, 6th November 2024 5:20:00 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Thursday, 7th November 2024 10:27:40 am
+# Last Modified: Tuesday, 12th November 2024 5:28:32 pm
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 
@@ -22,8 +22,9 @@ sudo docker run --rm --name test-logging-container \
    --log-opt fluentd-address=localhost:24228 \
    --log-opt fluentd-request-ack="true" \
    --log-opt fluentd-async="false" \
-   --log-opt tag=flb_glf.test-service \
-   --log-opt labels="source.env,source.service,source.version,source.project" \
+   --log-opt tag=flb_glf.stdout_debug.test-service \
+   --log-opt labels="source.env,source.service,source.version,source.project,source.account" \
+   --label source.account="544038296934" \
    --label source.env="sandbox" \
    --label source.service=testing-service \
    --label source.version="1234" \
