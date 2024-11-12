@@ -1,4 +1,7 @@
 {
+    "log_type": "log_type",
+    "metric_name": "metric_name",
     "service_name": "service_name",
+    "source_env": "source_env",
     "source": "source"
 }
