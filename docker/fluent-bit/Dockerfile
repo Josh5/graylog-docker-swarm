@@ -43,6 +43,7 @@ ENV \
 COPY overlay/ /
 
 ENV \
+    FLUENT_BIT_LOG_LEVEL=info \
     FLUENT_BIT_TAG_PREFIX=flb_glf \
     HOST_HOSTNAME=graylog-fluent-bit \
     FORWARD_SHARED_KEY=1234567890 \

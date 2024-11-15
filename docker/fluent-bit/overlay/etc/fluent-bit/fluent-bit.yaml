@@ -21,7 +21,7 @@ service:
   # - trace
   #
   # by default 'info' is set, that means it includes 'error' and 'warning'.
-  log_level: info
+  log_level: ${FLUENT_BIT_LOG_LEVEL}
 
   # Parsers File
   # ============
@@ -105,7 +105,7 @@ pipeline:
       call: graylog_formatting
 
 includes:
-  - fluent-bit.debug.output.yml
+  - fluent-bit.debug.output.yaml
   #- fluent-bit.s3-cold-storage.output.yaml
   #- fluent-bit.graylog-gelf.output.yaml
   #- fluent-bit.grafana-loki.output.yaml
