@@ -4,7 +4,7 @@
 --File Created: Tuesday, 29th October 2024 3:18:29 pm
 --Author: Josh5 (jsunnex@gmail.com)
 -------
---Last Modified: Wednesday, 13th November 2024 9:56:21 am
+--Last Modified: Saturday, 16th November 2024 1:05:19 am
 --Modified By: Josh5 (jsunnex@gmail.com)
 --]]
 
@@ -20,24 +20,28 @@ function graylog_formatting(tag, timestamp, record)
         if key:sub(1, 7) == "source." then
             local new_key = "source_" .. key:sub(8)
             new_record[new_key] = value
-            new_record[key] = nil  -- Remove the original "source." key
+            new_record[key] = nil   -- Remove the original "source." key
+        end
+
+        -- Check if message key is not lowercase
+        if not new_record["message"] and key:lower() == "message" then
+            new_record["message"] = value
+            new_record[key] = nil   -- Remove the original non-lowercase "message" record
         end
     end
     
     -- Check if "short_message" exists and is a non-empty string
-    if new_record["short_message"] then
-        if type(new_record["short_message"]) == "string" and new_record["short_message"] == "" then
-            new_record["short_message"] = nil  -- Remove if it's an empty string
-        end
+    if new_record["short_message"] == "" then
+        new_record["short_message"] = nil  -- Remove if it's an empty string
     end
 
     -- Ensure "message" exists; if not, create one with "NO MESSAGE" or from "log"
     if not new_record["message"] or (type(new_record["message"]) ~= "string" or new_record["message"] == "") then
         if new_record["log"] and (type(new_record["log"]) == "string" and new_record["log"] ~= "") then
-            new_record["message"] = new_record["log"]   -- Use log if it exists and is not empty
-            new_record["log"] = nil                 -- Remove "log" after transferring its value
+            new_record["message"] = new_record["log"]           -- Use log if it exists and is not empty
+            new_record["log"] = nil                             -- Remove "log" after transferring its value
         else
-            new_record["message"] = "NO MESSAGE"    -- Default to "NO MESSAGE"
+            new_record["message"] = "NO MESSAGE"                -- Default to "NO MESSAGE"
         end
     end
 
