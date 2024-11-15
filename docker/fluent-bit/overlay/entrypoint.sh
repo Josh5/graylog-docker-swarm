@@ -5,7 +5,7 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Friday, 15th November 2024 11:37:58 pm
+# Last Modified: Friday, 15th November 2024 11:50:32 pm
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 set -eu
@@ -140,13 +140,17 @@ if [[ -z "${ENABLE_STDOUT_OUTPUT:-}" || "${ENABLE_STDOUT_OUTPUT,,}" =~ ^(false|f
     print_log "info" "Leaving STDOUT output for all logs disabled"
 else
     print_log "info" "Adding STDOUT output for all logs"
+    match="${FLUENT_BIT_TAG_PREFIX:-}**"
+    if [ -z ${FLUENT_BIT_TAG_PREFIX:-} ]; then
+        match="'**'"
+    fi
     yaml_file="fluent-bit.debug.output.yaml"
     cat <<EOF >/etc/fluent-bit-custom/${yaml_file:?}
 pipeline:
   outputs:
     # Debugging output
     - name: stdout
-      match: '${FLUENT_BIT_TAG_PREFIX:-}*'
+      match: ${match:?}
 EOF
     echo
     echo /etc/fluent-bit-custom/${yaml_file:?}
@@ -184,22 +188,26 @@ if [[ -z "${ENABLE_GRAYLOG_GELF_OUTPUT:-}" || "${ENABLE_GRAYLOG_GELF_OUTPUT,,}" 
     print_log "info" "Leaving Graylog GELF output disabled"
 else
     print_log "info" "Adding Graylog GELF output"
+    match="${FLUENT_BIT_TAG_PREFIX:-}**"
+    if [ -z ${FLUENT_BIT_TAG_PREFIX:-} ]; then
+        match="'**'"
+    fi
     yaml_file="fluent-bit.graylog-gelf.output.yaml"
     cat <<EOF >/etc/fluent-bit-custom/${yaml_file:?}
 pipeline:
   outputs:
     # Graylog GELF output
-    - name: 'gelf'
-      match: '${FLUENT_BIT_TAG_PREFIX:-}*'
-      host: 'graylog'
-      port: '12201'
-      mode: 'udp'
-      compress: 'true'
-      gelf_timestamp_key: 'timestamp'
-      gelf_short_message_key: 'message'
-      gelf_full_message_key: 'message'
-      gelf_host_key: 'source'
-      retry_limit: '6'
+    - name: gelf
+      match: ${match:?}
+      host: graylog
+      port: 12201
+      mode: udp
+      compress: true
+      gelf_timestamp_key: timestamp
+      gelf_short_message_key: message
+      gelf_full_message_key: message
+      gelf_host_key: source
+      retry_limit: 6
 EOF
     sed -i "s/^\(\s*\)#-\( ${yaml_file:?}\)/\1- ${yaml_file:?}/" /etc/fluent-bit-custom/fluent-bit.yaml
     echo
