@@ -5,7 +5,7 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Friday, 15th November 2024 11:50:32 pm
+# Last Modified: Saturday, 16th November 2024 12:23:13 am
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 set -eu
@@ -201,8 +201,8 @@ pipeline:
       match: ${match:?}
       host: graylog
       port: 12201
-      mode: udp
-      compress: true
+      mode: tcp
+      compress: false
       gelf_timestamp_key: timestamp
       gelf_short_message_key: message
       gelf_full_message_key: message
