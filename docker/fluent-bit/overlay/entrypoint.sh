@@ -5,7 +5,7 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Friday, 15th November 2024 5:25:47 pm
+# Last Modified: Friday, 15th November 2024 5:33:24 pm
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 set -eu
@@ -221,6 +221,24 @@ pipeline:
       shared_key: '${FORWARD_SHARED_KEY:?}'
       tls: 'on'
       tls.verify: '${TLS_FORWARD_OUTPUT_VERIFY:-off}'
+EOF
+    sed -i "s/^\(\s*\)#-\( ${yaml_file:?}\)/\1- ${yaml_file:?}/" /etc/fluent-bit-custom/fluent-bit.yaml
+fi
+
+if [[ -z "${ENABLE_PT_FORWARD_OUTPUT:-}" || "${ENABLE_PT_FORWARD_OUTPUT,,}" =~ ^(false|f)$ ]]; then
+    print_log "info" "Leaving PT Forward output disabled"
+else
+    print_log "info" "Adding PT Forward output"
+    yaml_file="fluent-bit.pt-forward.output.yaml"
+    cat <<EOF >/etc/fluent-bit-custom/${yaml_file:?}
+pipeline:
+  outputs:
+    # PT Forward output
+    - name: 'forward'
+      match: '${FLUENT_BIT_TAG_PREFIX:-}*'
+      host: '${PT_FORWARD_OUTPUT_HOST:?}'
+      port: '${PT_FORWARD_OUTPUT_PORT:?}'
+      tls: 'off'
 EOF
     sed -i "s/^\(\s*\)#-\( ${yaml_file:?}\)/\1- ${yaml_file:?}/" /etc/fluent-bit-custom/fluent-bit.yaml
 fi

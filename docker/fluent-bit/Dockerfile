@@ -62,7 +62,8 @@ ENV \
     GRAFANA_LOKI_HOST=loki \
     GRAFANA_LOKI_PORT=3100 \
     GRAFANA_LOKI_URI=/logs/loki/api/v1/push \
-    ENABLE_TLS_FORWARD_OUTPUT=false
+    ENABLE_TLS_FORWARD_OUTPUT=false \
+    ENABLE_PT_FORWARD_OUTPUT=false
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/entrypoint.sh"]
 CMD []
