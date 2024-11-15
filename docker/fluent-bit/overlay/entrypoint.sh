@@ -5,7 +5,7 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Friday, 15th November 2024 4:44:42 pm
+# Last Modified: Friday, 15th November 2024 4:50:30 pm
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 set -eu
@@ -131,6 +131,8 @@ fi
 ################################################
 # --- Configure Fluent-bit
 #
+touch /etc/fluent-bit/parsers.conf
+touch /etc/fluent-bit/plugins.conf
 if [[ -z "${ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT:-}" || "${ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT,,}" =~ ^(false|f)$ ]]; then
     print_log "info" "Leaving S3 Bucket cold storage output disabled"
 else
