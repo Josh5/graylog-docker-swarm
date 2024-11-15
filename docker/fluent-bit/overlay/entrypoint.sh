@@ -5,7 +5,7 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Thursday, 7th November 2024 10:49:47 am
+# Last Modified: Friday, 15th November 2024 4:33:37 pm
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 set -eu
@@ -140,7 +140,7 @@ pipeline:
   outputs:
     # S3 Bucket cold storage output
     - name: s3
-      match_regex: ^flb_glf(?!.*cld_st).*
+      match_regex: ^${FLUENT_BIT_TAG_PREFIX:-}(?!.*cld_st).*
       bucket: ${AWS_COLD_STORAGE_BUCKET_NAME:?}
       region: ${AWS_COLD_STORAGE_BUCKET_REGION:?}
       total_file_size: 10M
@@ -162,7 +162,7 @@ pipeline:
   outputs:
     # Graylog GELF output
     - name: gelf
-      match: flb_glf.*
+      match: ${FLUENT_BIT_TAG_PREFIX:-}*
       host: graylog
       port: 12201
       mode: udp
@@ -184,14 +184,32 @@ pipeline:
   outputs:
     # Grafana Loki output
     - name: loki
-      match: flb_glf.*
+      match: ${FLUENT_BIT_TAG_PREFIX:-}*
       host: ${GRAFANA_LOKI_HOST:-}
       port: ${GRAFANA_LOKI_PORT:-}
       uri: ${GRAFANA_LOKI_URI:-/loki/api/v1/push}
       tls: off
-      labels: input=flb_glf
+      labels: input=${FLUENT_BIT_TAG_PREFIX:-}
       label_map_path: /etc/fluent-bit/fluent-bit.grafana-loki.output.logmap.json
       line_format: json
+EOF
+fi
+
+if [[ -z "${ENABLE_TLS_FORWARD_OUTPUT:-}" || "${ENABLE_TLS_FORWARD_OUTPUT,,}" =~ ^(false|f)$ ]]; then
+    print_log "info" "Leaving TLS Forward output disabled"
+else
+    print_log "info" "Adding TLS Forward output"
+    cat <<EOF >/etc/fluent-bit/fluent-bit.tls-forward.output.yaml
+pipeline:
+  outputs:
+    # TLS Forward output
+    - name: forward
+      match: ${FLUENT_BIT_TAG_PREFIX:-}*
+      host: ${TLS_FORWARD_HOST:-}
+      port: ${TLS_FORWARD_PORT:-}
+      shared_key: ${FORWARD_SHARED_KEY:?}
+      tls: on
+      tls.verify: ${TLS_FORWARD_VERIFY:-off}
 EOF
 fi
 

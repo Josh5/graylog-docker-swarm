@@ -43,6 +43,7 @@ ENV \
 COPY overlay/ /
 
 ENV \
+    FLUENT_BIT_TAG_PREFIX=flb_glf \
     HOST_HOSTNAME=graylog-fluent-bit \
     FORWARD_SHARED_KEY=1234567890 \
     FLUENT_STORAGE_PATH=/var/fluent-bit/storage \
@@ -55,11 +56,12 @@ ENV \
     CERT_FQDN=example.com \
     CERT_EMAIL=admin@example.com \
     ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT=false \
-    ENABLE_GRAYLOG_GELF_OUTPUT=true \
-    ENABLE_GRAFANA_LOKI_OUTPUT=true \
+    ENABLE_GRAYLOG_GELF_OUTPUT=false \
+    ENABLE_GRAFANA_LOKI_OUTPUT=false \
     GRAFANA_LOKI_HOST=loki \
     GRAFANA_LOKI_PORT=3100 \
-    GRAFANA_LOKI_URI=/logs/loki/api/v1/push
+    GRAFANA_LOKI_URI=/logs/loki/api/v1/push \
+    ENABLE_TLS_FORWARD_OUTPUT=false
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/entrypoint.sh"]
 CMD []

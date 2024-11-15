@@ -94,13 +94,13 @@ pipeline:
   filters:
     # Ensure any JSON logs are evaluated and flattened
     - name: lua
-      match: flb_glf.*
+      match: ${FLUENT_BIT_TAG_PREFIX}*
       script: flatten-json.lua
       call: flatten_json
 
     # Ensure all logs are formatted correctly for graylog
     - name: lua
-      match: flb_glf.*
+      match: ${FLUENT_BIT_TAG_PREFIX}*
       script: apply-graylog-formatting.lua
       call: graylog_formatting
 
@@ -113,3 +113,4 @@ includes:
   - fluent-bit.s3-cold-storage.output.yaml
   - fluent-bit.graylog-gelf.output.yaml
   - fluent-bit.grafana-loki.output.yaml
+  - fluent-bit.tls-forward.output.yaml
