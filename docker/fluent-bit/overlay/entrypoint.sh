@@ -5,7 +5,7 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Friday, 15th November 2024 5:33:24 pm
+# Last Modified: Friday, 15th November 2024 11:33:33 pm
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 set -eu
@@ -135,6 +135,21 @@ mkdir -p /etc/fluent-bit-custom
 cp -rf /etc/fluent-bit/* /etc/fluent-bit-custom/
 touch /etc/fluent-bit-custom/parsers.conf
 touch /etc/fluent-bit-custom/plugins.conf
+
+if [[ -z "${ENABLE_STDOUT_OUTPUT:-}" || "${ENABLE_STDOUT_OUTPUT,,}" =~ ^(false|f)$ ]]; then
+    print_log "info" "Leaving STDOUT output for all logs disabled"
+else
+    print_log "info" "Adding STDOUT output for all logs"
+    yaml_file="fluent-bit.debug.output.yaml"
+    cat <<EOF >/etc/fluent-bit-custom/${yaml_file:?}
+pipeline:
+  outputs:
+    # Debugging output
+    - name: stdout
+      match: '${FLUENT_BIT_TAG_PREFIX:-}*'
+EOF
+fi
+
 if [[ -z "${ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT:-}" || "${ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT,,}" =~ ^(false|f)$ ]]; then
     print_log "info" "Leaving S3 Bucket cold storage output disabled"
 else
@@ -198,7 +213,7 @@ pipeline:
       port: '${GRAFANA_LOKI_PORT:-}'
       uri: '${GRAFANA_LOKI_URI:-/loki/api/v1/push}'
       tls: 'off'
-      labels: 'input=${FLUENT_BIT_TAG_PREFIX:-}'
+      labels: 'input=flb'
       label_map_path: '/etc/fluent-bit-custom/fluent-bit.grafana-loki.output.logmap.json'
       line_format: 'json'
 EOF

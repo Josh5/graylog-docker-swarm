@@ -56,6 +56,7 @@ ENV \
     USE_CERTBOT_TO_GENERATE_KEY=false \
     CERT_FQDN=example.com \
     CERT_EMAIL=admin@example.com \
+    ENABLE_STDOUT_OUTPUT=false \
     ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT=false \
     ENABLE_GRAYLOG_GELF_OUTPUT=false \
     ENABLE_GRAFANA_LOKI_OUTPUT=false \
