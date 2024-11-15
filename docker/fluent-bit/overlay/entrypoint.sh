@@ -5,7 +5,7 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Friday, 15th November 2024 4:33:37 pm
+# Last Modified: Friday, 15th November 2024 4:44:42 pm
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 set -eu
@@ -205,11 +205,11 @@ pipeline:
     # TLS Forward output
     - name: forward
       match: ${FLUENT_BIT_TAG_PREFIX:-}*
-      host: ${TLS_FORWARD_HOST:-}
-      port: ${TLS_FORWARD_PORT:-}
+      host: ${TLS_FORWARD_OUTPUT_HOST:?}
+      port: ${TLS_FORWARD_OUTPUT_PORT:?}
       shared_key: ${FORWARD_SHARED_KEY:?}
       tls: on
-      tls.verify: ${TLS_FORWARD_VERIFY:-off}
+      tls.verify: ${TLS_FORWARD_OUTPUT_VERIFY:-off}
 EOF
 fi
 
