@@ -5,7 +5,7 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Friday, 15th November 2024 5:08:20 pm
+# Last Modified: Friday, 15th November 2024 5:22:32 pm
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 set -eu
@@ -214,13 +214,13 @@ else
 pipeline:
   outputs:
     # TLS Forward output
-    - name: forward
-      match: ${FLUENT_BIT_TAG_PREFIX:-}*
-      host: ${TLS_FORWARD_OUTPUT_HOST:?}
-      port: ${TLS_FORWARD_OUTPUT_PORT:?}
-      shared_key: ${FORWARD_SHARED_KEY:?}
-      tls: on
-      tls.verify: ${TLS_FORWARD_OUTPUT_VERIFY:-off}
+    - name: 'forward'
+      match: '${FLUENT_BIT_TAG_PREFIX:-}*'
+      host: '${TLS_FORWARD_OUTPUT_HOST:?}'
+      port: '${TLS_FORWARD_OUTPUT_PORT:?}'
+      shared_key: '${FORWARD_SHARED_KEY:?}'
+      tls: 'on'
+      tls.verify: '${TLS_FORWARD_OUTPUT_VERIFY:-off}'
 EOF
     sed -i "s/^\(\s*\)#-\( ${yaml_file:?}\)/\1- ${yaml_file:?}/" /etc/fluent-bit-custom/fluent-bit.yaml
 fi
