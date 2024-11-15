@@ -5,7 +5,7 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Friday, 15th November 2024 11:33:33 pm
+# Last Modified: Friday, 15th November 2024 11:37:58 pm
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 set -eu
@@ -148,6 +148,9 @@ pipeline:
     - name: stdout
       match: '${FLUENT_BIT_TAG_PREFIX:-}*'
 EOF
+    echo
+    echo /etc/fluent-bit-custom/${yaml_file:?}
+    cat /etc/fluent-bit-custom/${yaml_file:?}
 fi
 
 if [[ -z "${ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT:-}" || "${ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT,,}" =~ ^(false|f)$ ]]; then
@@ -172,6 +175,9 @@ pipeline:
       retry_limit: 5
 EOF
     sed -i "s/^\(\s*\)#-\( ${yaml_file:?}\)/\1- ${yaml_file:?}/" /etc/fluent-bit-custom/fluent-bit.yaml
+    echo
+    echo /etc/fluent-bit-custom/${yaml_file:?}
+    cat /etc/fluent-bit-custom/${yaml_file:?}
 fi
 
 if [[ -z "${ENABLE_GRAYLOG_GELF_OUTPUT:-}" || "${ENABLE_GRAYLOG_GELF_OUTPUT,,}" =~ ^(false|f)$ ]]; then
@@ -196,6 +202,9 @@ pipeline:
       retry_limit: '6'
 EOF
     sed -i "s/^\(\s*\)#-\( ${yaml_file:?}\)/\1- ${yaml_file:?}/" /etc/fluent-bit-custom/fluent-bit.yaml
+    echo
+    echo /etc/fluent-bit-custom/${yaml_file:?}
+    cat /etc/fluent-bit-custom/${yaml_file:?}
 fi
 
 if [[ -z "${ENABLE_GRAFANA_LOKI_OUTPUT:-}" || "${ENABLE_GRAFANA_LOKI_OUTPUT,,}" =~ ^(false|f)$ ]]; then
@@ -218,6 +227,9 @@ pipeline:
       line_format: 'json'
 EOF
     sed -i "s/^\(\s*\)#-\( ${yaml_file:?}\)/\1- ${yaml_file:?}/" /etc/fluent-bit-custom/fluent-bit.yaml
+    echo
+    echo /etc/fluent-bit-custom/${yaml_file:?}
+    cat /etc/fluent-bit-custom/${yaml_file:?}
 fi
 
 if [[ -z "${ENABLE_TLS_FORWARD_OUTPUT:-}" || "${ENABLE_TLS_FORWARD_OUTPUT,,}" =~ ^(false|f)$ ]]; then
@@ -238,6 +250,9 @@ pipeline:
       tls.verify: '${TLS_FORWARD_OUTPUT_VERIFY:-off}'
 EOF
     sed -i "s/^\(\s*\)#-\( ${yaml_file:?}\)/\1- ${yaml_file:?}/" /etc/fluent-bit-custom/fluent-bit.yaml
+    echo
+    echo /etc/fluent-bit-custom/${yaml_file:?}
+    cat /etc/fluent-bit-custom/${yaml_file:?}
 fi
 
 if [[ -z "${ENABLE_PT_FORWARD_OUTPUT:-}" || "${ENABLE_PT_FORWARD_OUTPUT,,}" =~ ^(false|f)$ ]]; then
@@ -256,7 +271,13 @@ pipeline:
       tls: 'off'
 EOF
     sed -i "s/^\(\s*\)#-\( ${yaml_file:?}\)/\1- ${yaml_file:?}/" /etc/fluent-bit-custom/fluent-bit.yaml
+    echo
+    echo /etc/fluent-bit-custom/${yaml_file:?}
+    cat /etc/fluent-bit-custom/${yaml_file:?}
 fi
+echo
+echo /etc/fluent-bit-custom/fluent-bit.yaml
+cat /etc/fluent-bit-custom/fluent-bit.yaml
 
 ################################################
 # --- Run Fluent-bit
