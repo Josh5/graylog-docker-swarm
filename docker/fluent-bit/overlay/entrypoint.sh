@@ -5,7 +5,7 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Friday, 15th November 2024 5:22:32 pm
+# Last Modified: Friday, 15th November 2024 5:25:47 pm
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 set -eu
@@ -168,17 +168,17 @@ else
 pipeline:
   outputs:
     # Graylog GELF output
-    - name: gelf
-      match: ${FLUENT_BIT_TAG_PREFIX:-}*
-      host: graylog
-      port: 12201
-      mode: udp
-      compress: true
-      gelf_timestamp_key: timestamp
-      gelf_short_message_key: message
-      gelf_full_message_key: message
-      gelf_host_key: source
-      retry_limit: 6
+    - name: 'gelf'
+      match: '${FLUENT_BIT_TAG_PREFIX:-}*'
+      host: 'graylog'
+      port: '12201'
+      mode: 'udp'
+      compress: 'true'
+      gelf_timestamp_key: 'timestamp'
+      gelf_short_message_key: 'message'
+      gelf_full_message_key: 'message'
+      gelf_host_key: 'source'
+      retry_limit: '6'
 EOF
     sed -i "s/^\(\s*\)#-\( ${yaml_file:?}\)/\1- ${yaml_file:?}/" /etc/fluent-bit-custom/fluent-bit.yaml
 fi
@@ -192,15 +192,15 @@ else
 pipeline:
   outputs:
     # Grafana Loki output
-    - name: loki
-      match: ${FLUENT_BIT_TAG_PREFIX:-}*
-      host: ${GRAFANA_LOKI_HOST:-}
-      port: ${GRAFANA_LOKI_PORT:-}
-      uri: ${GRAFANA_LOKI_URI:-/loki/api/v1/push}
-      tls: off
-      labels: input=${FLUENT_BIT_TAG_PREFIX:-}
-      label_map_path: /etc/fluent-bit-custom/fluent-bit.grafana-loki.output.logmap.json
-      line_format: json
+    - name: 'loki'
+      match: '${FLUENT_BIT_TAG_PREFIX:-}*'
+      host: '${GRAFANA_LOKI_HOST:-}'
+      port: '${GRAFANA_LOKI_PORT:-}'
+      uri: '${GRAFANA_LOKI_URI:-/loki/api/v1/push}'
+      tls: 'off'
+      labels: 'input=${FLUENT_BIT_TAG_PREFIX:-}'
+      label_map_path: '/etc/fluent-bit-custom/fluent-bit.grafana-loki.output.logmap.json'
+      line_format: 'json'
 EOF
     sed -i "s/^\(\s*\)#-\( ${yaml_file:?}\)/\1- ${yaml_file:?}/" /etc/fluent-bit-custom/fluent-bit.yaml
 fi
