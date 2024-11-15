@@ -5,7 +5,7 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Saturday, 16th November 2024 12:23:13 am
+# Last Modified: Saturday, 16th November 2024 12:46:13 am
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 set -eu
@@ -136,27 +136,31 @@ cp -rf /etc/fluent-bit/* /etc/fluent-bit-custom/
 touch /etc/fluent-bit-custom/parsers.conf
 touch /etc/fluent-bit-custom/plugins.conf
 
+# Specify a ** match in single quotes if no prefix was provided
+output_tag_match="${FLUENT_BIT_TAG_PREFIX:-}**"
+if [ -z ${FLUENT_BIT_TAG_PREFIX:-} ]; then
+    output_tag_match="'**'"
+fi
+
+# STDOUT output for debugging all log traffic
 if [[ -z "${ENABLE_STDOUT_OUTPUT:-}" || "${ENABLE_STDOUT_OUTPUT,,}" =~ ^(false|f)$ ]]; then
     print_log "info" "Leaving STDOUT output for all logs disabled"
 else
     print_log "info" "Adding STDOUT output for all logs"
-    match="${FLUENT_BIT_TAG_PREFIX:-}**"
-    if [ -z ${FLUENT_BIT_TAG_PREFIX:-} ]; then
-        match="'**'"
-    fi
     yaml_file="fluent-bit.debug.output.yaml"
     cat <<EOF >/etc/fluent-bit-custom/${yaml_file:?}
 pipeline:
   outputs:
     # Debugging output
     - name: stdout
-      match: ${match:?}
+      match: ${output_tag_match:?}
 EOF
     echo
     echo /etc/fluent-bit-custom/${yaml_file:?}
     cat /etc/fluent-bit-custom/${yaml_file:?}
 fi
 
+# S3 Bucket cold storage
 if [[ -z "${ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT:-}" || "${ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT,,}" =~ ^(false|f)$ ]]; then
     print_log "info" "Leaving S3 Bucket cold storage output disabled"
 else
@@ -184,21 +188,18 @@ EOF
     cat /etc/fluent-bit-custom/${yaml_file:?}
 fi
 
+# Graylog GELF output
 if [[ -z "${ENABLE_GRAYLOG_GELF_OUTPUT:-}" || "${ENABLE_GRAYLOG_GELF_OUTPUT,,}" =~ ^(false|f)$ ]]; then
     print_log "info" "Leaving Graylog GELF output disabled"
 else
     print_log "info" "Adding Graylog GELF output"
-    match="${FLUENT_BIT_TAG_PREFIX:-}**"
-    if [ -z ${FLUENT_BIT_TAG_PREFIX:-} ]; then
-        match="'**'"
-    fi
     yaml_file="fluent-bit.graylog-gelf.output.yaml"
     cat <<EOF >/etc/fluent-bit-custom/${yaml_file:?}
 pipeline:
   outputs:
     # Graylog GELF output
     - name: gelf
-      match: ${match:?}
+      match: ${output_tag_match:?}
       host: graylog
       port: 12201
       mode: tcp
@@ -215,6 +216,7 @@ EOF
     cat /etc/fluent-bit-custom/${yaml_file:?}
 fi
 
+# Grafana Loki output
 if [[ -z "${ENABLE_GRAFANA_LOKI_OUTPUT:-}" || "${ENABLE_GRAFANA_LOKI_OUTPUT,,}" =~ ^(false|f)$ ]]; then
     print_log "info" "Leaving Grafana Loki output disabled"
 else
@@ -224,15 +226,15 @@ else
 pipeline:
   outputs:
     # Grafana Loki output
-    - name: 'loki'
-      match: '${FLUENT_BIT_TAG_PREFIX:-}*'
-      host: '${GRAFANA_LOKI_HOST:-}'
-      port: '${GRAFANA_LOKI_PORT:-}'
-      uri: '${GRAFANA_LOKI_URI:-/loki/api/v1/push}'
-      tls: 'off'
-      labels: 'input=flb'
-      label_map_path: '/etc/fluent-bit-custom/fluent-bit.grafana-loki.output.logmap.json'
-      line_format: 'json'
+    - name: loki
+      match: ${output_tag_match:?}
+      host: ${GRAFANA_LOKI_HOST:-}
+      port: ${GRAFANA_LOKI_PORT:-}
+      uri: ${GRAFANA_LOKI_URI:-/loki/api/v1/push}
+      tls: off
+      labels: input=flb
+      label_map_path: /etc/fluent-bit-custom/fluent-bit.grafana-loki.output.logmap.json
+      line_format: json
 EOF
     sed -i "s/^\(\s*\)#-\( ${yaml_file:?}\)/\1- ${yaml_file:?}/" /etc/fluent-bit-custom/fluent-bit.yaml
     echo
@@ -240,6 +242,7 @@ EOF
     cat /etc/fluent-bit-custom/${yaml_file:?}
 fi
 
+# Upstream Fluentd or Fluent-bit TLS encrypted Forward output
 if [[ -z "${ENABLE_TLS_FORWARD_OUTPUT:-}" || "${ENABLE_TLS_FORWARD_OUTPUT,,}" =~ ^(false|f)$ ]]; then
     print_log "info" "Leaving TLS Forward output disabled"
 else
@@ -249,13 +252,13 @@ else
 pipeline:
   outputs:
     # TLS Forward output
-    - name: 'forward'
-      match: '${FLUENT_BIT_TAG_PREFIX:-}*'
-      host: '${TLS_FORWARD_OUTPUT_HOST:?}'
-      port: '${TLS_FORWARD_OUTPUT_PORT:?}'
-      shared_key: '${FORWARD_SHARED_KEY:?}'
-      tls: 'on'
-      tls.verify: '${TLS_FORWARD_OUTPUT_VERIFY:-off}'
+    - name: forward
+      match: ${output_tag_match:?}
+      host: ${TLS_FORWARD_OUTPUT_HOST:?}
+      port: ${TLS_FORWARD_OUTPUT_PORT:?}
+      shared_key: ${FORWARD_SHARED_KEY:?}
+      tls: on
+      tls.verify: ${TLS_FORWARD_OUTPUT_VERIFY:-off}
 EOF
     sed -i "s/^\(\s*\)#-\( ${yaml_file:?}\)/\1- ${yaml_file:?}/" /etc/fluent-bit-custom/fluent-bit.yaml
     echo
@@ -263,6 +266,7 @@ EOF
     cat /etc/fluent-bit-custom/${yaml_file:?}
 fi
 
+# Upstream Fluentd or Fluent-bit unencrypted Forward output
 if [[ -z "${ENABLE_PT_FORWARD_OUTPUT:-}" || "${ENABLE_PT_FORWARD_OUTPUT,,}" =~ ^(false|f)$ ]]; then
     print_log "info" "Leaving PT Forward output disabled"
 else
