@@ -104,13 +104,9 @@ pipeline:
       script: apply-graylog-formatting.lua
       call: graylog_formatting
 
-  outputs:
-    # Debugging output
-    - name: stdout
-      match_regex: ^.*\.stdout_debug.*
-
 includes:
-  - fluent-bit.s3-cold-storage.output.yaml
-  - fluent-bit.graylog-gelf.output.yaml
-  - fluent-bit.grafana-loki.output.yaml
-  - fluent-bit.tls-forward.output.yaml
+  - fluent-bit.debug.output.yml
+  #- fluent-bit.s3-cold-storage.output.yaml
+  #- fluent-bit.graylog-gelf.output.yaml
+  #- fluent-bit.grafana-loki.output.yaml
+  #- fluent-bit.tls-forward.output.yaml

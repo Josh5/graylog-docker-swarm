@@ -5,7 +5,7 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Friday, 15th November 2024 4:56:49 pm
+# Last Modified: Friday, 15th November 2024 5:08:20 pm
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 set -eu
@@ -139,7 +139,8 @@ if [[ -z "${ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT:-}" || "${ENABLE_S3_BUCKET_COLD
     print_log "info" "Leaving S3 Bucket cold storage output disabled"
 else
     print_log "info" "Adding S3 Bucket cold storage output"
-    cat <<EOF >/etc/fluent-bit-custom/fluent-bit.s3-cold-storage.output.yaml
+    yaml_file="fluent-bit.s3-cold-storage.output.yaml"
+    cat <<EOF >/etc/fluent-bit-custom/${yaml_file:?}
 pipeline:
   outputs:
     # S3 Bucket cold storage output
@@ -155,13 +156,15 @@ pipeline:
       upload_timeout: 10m
       retry_limit: 5
 EOF
+    sed -i "s/^\(\s*\)#-\( ${yaml_file:?}\)/\1- ${yaml_file:?}/" /etc/fluent-bit-custom/fluent-bit.yaml
 fi
 
 if [[ -z "${ENABLE_GRAYLOG_GELF_OUTPUT:-}" || "${ENABLE_GRAYLOG_GELF_OUTPUT,,}" =~ ^(false|f)$ ]]; then
     print_log "info" "Leaving Graylog GELF output disabled"
 else
     print_log "info" "Adding Graylog GELF output"
-    cat <<EOF >/etc/fluent-bit-custom/fluent-bit.graylog-gelf.output.yaml
+    yaml_file="fluent-bit.graylog-gelf.output.yaml"
+    cat <<EOF >/etc/fluent-bit-custom/${yaml_file:?}
 pipeline:
   outputs:
     # Graylog GELF output
@@ -177,13 +180,15 @@ pipeline:
       gelf_host_key: source
       retry_limit: 6
 EOF
+    sed -i "s/^\(\s*\)#-\( ${yaml_file:?}\)/\1- ${yaml_file:?}/" /etc/fluent-bit-custom/fluent-bit.yaml
 fi
 
 if [[ -z "${ENABLE_GRAFANA_LOKI_OUTPUT:-}" || "${ENABLE_GRAFANA_LOKI_OUTPUT,,}" =~ ^(false|f)$ ]]; then
     print_log "info" "Leaving Grafana Loki output disabled"
 else
     print_log "info" "Adding Grafana Loki output"
-    cat <<EOF >/etc/fluent-bit-custom/fluent-bit.grafana-loki.output.yaml
+    yaml_file="fluent-bit.grafana-loki.output.yaml"
+    cat <<EOF >/etc/fluent-bit-custom/${yaml_file:?}
 pipeline:
   outputs:
     # Grafana Loki output
@@ -197,13 +202,15 @@ pipeline:
       label_map_path: /etc/fluent-bit-custom/fluent-bit.grafana-loki.output.logmap.json
       line_format: json
 EOF
+    sed -i "s/^\(\s*\)#-\( ${yaml_file:?}\)/\1- ${yaml_file:?}/" /etc/fluent-bit-custom/fluent-bit.yaml
 fi
 
 if [[ -z "${ENABLE_TLS_FORWARD_OUTPUT:-}" || "${ENABLE_TLS_FORWARD_OUTPUT,,}" =~ ^(false|f)$ ]]; then
     print_log "info" "Leaving TLS Forward output disabled"
 else
     print_log "info" "Adding TLS Forward output"
-    cat <<EOF >/etc/fluent-bit-custom/fluent-bit.tls-forward.output.yaml
+    yaml_file="fluent-bit.tls-forward.output.yaml"
+    cat <<EOF >/etc/fluent-bit-custom/${yaml_file:?}
 pipeline:
   outputs:
     # TLS Forward output
@@ -215,6 +222,7 @@ pipeline:
       tls: on
       tls.verify: ${TLS_FORWARD_OUTPUT_VERIFY:-off}
 EOF
+    sed -i "s/^\(\s*\)#-\( ${yaml_file:?}\)/\1- ${yaml_file:?}/" /etc/fluent-bit-custom/fluent-bit.yaml
 fi
 
 ################################################
