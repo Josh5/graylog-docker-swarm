@@ -4,7 +4,7 @@
 --File Created: Tuesday, 29th October 2024 3:18:29 pm
 --Author: Josh5 (jsunnex@gmail.com)
 -------
---Last Modified: Wednesday, 20th November 2024 11:49:53 pm
+--Last Modified: Thursday, 21st November 2024 12:16:44 am
 --Modified By: Josh5 (jsunnex@gmail.com)
 --]]
 
@@ -63,6 +63,14 @@ function graylog_formatting(tag, timestamp, record)
     if new_record["level"] then
         local level_string = new_record["level"]:gsub("^%s*(.-)%s*$", "%1")  -- Trim whitespace
         local level_map = {
+            [0] = "fatal",
+            [1] = "alert",
+            [2] = "critical",
+            [3] = "error",
+            [4] = "warn",
+            [5] = "notice",
+            [6] = "info",
+            [7] = "debug",
             fatal = 0,
             emerg = 0,
             emergency = 0,
@@ -83,16 +91,22 @@ function graylog_formatting(tag, timestamp, record)
             trace = 7
         }
 
-        -- Convert level string to lowercase for case-insensitive matching
-        local lower_level_string = level_string:lower()
-
-        -- Check if the lowercased level string exists in the map
-        if level_map[lower_level_string] then
-            new_record["level"] = level_map[lower_level_string]     -- Set level to the corresponding integer
-            new_record["levelname"] = level_string                  -- Move the original level string to "levelname"
+        if type(tonumber(new_record["level"])) == "number" then
+            -- Assign levelname based on the numeric level
+            local numeric_level = tonumber(new_record["level"])
+            new_record["levelname"] = level_map[numeric_level] or "unknown"
         else
-            new_record["level"] = 6                                 -- Default to Info if level is unrecognized
-            new_record["levelname"] = "info"                        -- Move original level string to "levelname"
+            -- Convert level string to lowercase for case-insensitive matching
+            local lower_level_string = level_string:lower()
+
+            -- Check if the lowercased level string exists in the map
+            if level_map[lower_level_string] then
+                new_record["level"] = level_map[lower_level_string] -- Set level to the corresponding integer
+                new_record["levelname"] = lower_level_string        -- Move the original level string to "levelname"
+            else
+                new_record["level"] = 6                             -- Default to Info if level is unrecognized
+                new_record["levelname"] = "info"                    -- Move original level string to "levelname"
+            end
         end
     else
         new_record["level"] = 6                                     -- Default to Info if level is unrecognized
