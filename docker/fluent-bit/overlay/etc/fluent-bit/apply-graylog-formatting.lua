@@ -4,7 +4,7 @@
 --File Created: Tuesday, 29th October 2024 3:18:29 pm
 --Author: Josh5 (jsunnex@gmail.com)
 -------
---Last Modified: Thursday, 21st November 2024 12:16:44 am
+--Last Modified: Thursday, 21st November 2024 12:26:59 am
 --Modified By: Josh5 (jsunnex@gmail.com)
 --]]
 
@@ -61,7 +61,6 @@ function graylog_formatting(tag, timestamp, record)
 
     -- Check and convert "level" to syslog standard int
     if new_record["level"] then
-        local level_string = new_record["level"]:gsub("^%s*(.-)%s*$", "%1")  -- Trim whitespace
         local level_map = {
             [0] = "fatal",
             [1] = "alert",
@@ -96,6 +95,7 @@ function graylog_formatting(tag, timestamp, record)
             local numeric_level = tonumber(new_record["level"])
             new_record["levelname"] = level_map[numeric_level] or "unknown"
         else
+            local level_string = tostring(new_record["level"]):gsub("^%s*(.-)%s*$", "%1")  -- Trim whitespace
             -- Convert level string to lowercase for case-insensitive matching
             local lower_level_string = level_string:lower()
 
