@@ -4,7 +4,7 @@
 --File Created: Tuesday, 29th October 2024 3:18:29 pm
 --Author: Josh5 (jsunnex@gmail.com)
 -------
---Last Modified: Saturday, 16th November 2024 1:05:19 am
+--Last Modified: Wednesday, 20th November 2024 11:49:53 pm
 --Modified By: Josh5 (jsunnex@gmail.com)
 --]]
 
@@ -63,16 +63,24 @@ function graylog_formatting(tag, timestamp, record)
     if new_record["level"] then
         local level_string = new_record["level"]:gsub("^%s*(.-)%s*$", "%1")  -- Trim whitespace
         local level_map = {
+            fatal = 0,
+            emerg = 0,
             emergency = 0,
             alert = 1,
+            crit = 2,
             critical = 2,
+            err = 3,
+            eror = 3,
             error = 3,
-            warning = 4,
             warn = 4,
+            warning = 4,
             notice = 5,
             informational = 6,
+            information = 6,
             info = 6,
-            debug = 7
+            dbug = 7,
+            debug = 7,
+            trace = 7
         }
 
         -- Convert level string to lowercase for case-insensitive matching
@@ -84,8 +92,11 @@ function graylog_formatting(tag, timestamp, record)
             new_record["levelname"] = level_string                  -- Move the original level string to "levelname"
         else
             new_record["level"] = 6                                 -- Default to Info if level is unrecognized
-            new_record["levelname"] = level_string                  -- Move original level string to "levelname"
+            new_record["levelname"] = "info"                        -- Move original level string to "levelname"
         end
+    else
+        new_record["level"] = 6                                     -- Default to Info if level is unrecognized
+        new_record["levelname"] = "info"                            -- Move original level string to "levelname"
     end
 
     -- Ensure "service_name" exists. 
