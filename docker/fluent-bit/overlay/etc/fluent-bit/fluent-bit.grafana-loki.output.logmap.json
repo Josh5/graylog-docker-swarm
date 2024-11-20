@@ -3,5 +3,6 @@
     "metric_name": "metric_name",
     "service_name": "service_name",
     "source_env": "source_env",
+    "source_hostname": "source_hostname",
     "source": "source"
 }
