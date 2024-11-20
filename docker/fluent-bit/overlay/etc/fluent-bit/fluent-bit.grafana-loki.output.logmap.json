@@ -1,6 +1,6 @@
 {
     "log_type": "log_type",
-    "level": "levelname",
+    "levelname": "level",
     "metric_name": "metric_name",
     "service_name": "service_name",
     "source_env": "source_env",
