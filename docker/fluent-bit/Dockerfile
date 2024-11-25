@@ -35,11 +35,6 @@ RUN \
     && \
     echo
 
-# Modify the Lua lib paths or Fluent-bit will not be able to import it
-ENV \
-    LUA_PATH="/usr/share/lua/5.1/?.lua;;" \
-    LUA_CPATH="/usr/lib/x86_64-linux-gnu/lua/5.1/?.so;;"
-
 COPY overlay/ /
 
 ENV \

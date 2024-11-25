@@ -5,7 +5,7 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Saturday, 16th November 2024 12:46:13 am
+# Last Modified: Monday, 25th November 2024 6:20:08 pm
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 set -eu
@@ -290,6 +290,10 @@ fi
 echo
 echo /etc/fluent-bit-custom/fluent-bit.yaml
 cat /etc/fluent-bit-custom/fluent-bit.yaml
+
+# Modify the Lua lib paths or Fluent-bit will not be able to import it
+export LUA_PATH="/usr/share/lua/5.1/?.lua;;"
+export LUA_CPATH="/usr/lib/$(uname -m)-linux-gnu/lua/5.1/?.so;;"
 
 ################################################
 # --- Run Fluent-bit
