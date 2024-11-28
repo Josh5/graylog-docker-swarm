@@ -71,6 +71,7 @@ pipeline:
       storage.type: filesystem
       buffer_chunk_size: 5M
       buffer_max_size: 1000M
+      threaded: true
 
     # Forward input configured PT only (for local docker logs)
     - name: forward
@@ -82,6 +83,7 @@ pipeline:
       buffer_max_size: 1000M
       tls: off
       tls.verify: off
+      threaded: true
 
     # Forward input configured with TLS certificates
     - name: forward
@@ -96,6 +98,7 @@ pipeline:
       tls.verify: off
       tls.key_file: ${CERTIFICATES_DIRECTORY}/fluent-bit.pem
       tls.crt_file: ${CERTIFICATES_DIRECTORY}/fluent-bit.pem
+      threaded: true
 
   filters:
     # Ensure any JSON logs are evaluated and flattened
