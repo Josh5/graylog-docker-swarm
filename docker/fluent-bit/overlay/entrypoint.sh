@@ -5,7 +5,7 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Monday, 25th November 2024 6:20:08 pm
+# Last Modified: Friday, 6th December 2024 9:20:34 am
 # Modified By: Josh5 (jsunnex@gmail.com)
 ###
 set -eu
@@ -256,7 +256,7 @@ pipeline:
       match: ${output_tag_match:?}
       host: ${TLS_FORWARD_OUTPUT_HOST:?}
       port: ${TLS_FORWARD_OUTPUT_PORT:?}
-      shared_key: ${FORWARD_SHARED_KEY:?}
+      shared_key: ${TLS_FORWARD_OUTPUT_SHARED_KEY:?}
       tls: on
       tls.verify: ${TLS_FORWARD_OUTPUT_VERIFY:-off}
 EOF
