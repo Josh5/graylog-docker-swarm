@@ -519,16 +519,23 @@ services:
 
         echo "Launching Nginx in background..."
         /docker-entrypoint.sh nginx -g "daemon off;" &
+        nginx_pid=$$!
+
+        # Trap TERM and INT signals and forward them to nginx
+        trap 'echo "Signal received, forwarding to Nginx (PID=$$nginx_pid)"; kill -TERM $$nginx_pid' TERM INT
 
         echo "Waiting 10 seconds for Nginx to stabilize..."
         sleep 10
 
-        echo "Touching .proxy-running to signal readiness"
+        echo "Touching .proxy-running to signal ready for certbot"
         touch /var/www/certbot/.proxy-running
 
         echo "Waiting for Nginx to exit..."
-        wait
-        echo
+        wait "$$nginx_pid"
+        exit_code=$$?
+
+        echo "Nginx exited with status $$exit_code"
+        exit "$$exit_code"
 
     # NETWORK:
     networks:
