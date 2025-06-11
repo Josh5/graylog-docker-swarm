@@ -1,0 +1,534 @@
+# ---------------
+# Graylog
+#
+# ---------------
+# Config (paste into portainer advance env text input):
+#
+# <config_start>
+#   #@ Placement
+#   #-    Configure a placement constraint to where the container will be run.
+#   #-    Examples:
+#   #-        - node.hostname==<hostname>
+#   #-        - engine.labels.fs-access.<worker-hostname>.mnt==true
+#   #-        - node.role!=manager
+#   PLACEMENT_CONSTRAINT=node.hostname==<hostname>
+#   #@ Traefik Config
+#   #-  - TRAEFIK_DOMAIN -
+#   #-    The Domiain where this is accessed at.
+#   TRAEFIK_DOMAIN=graylog.local
+#   #-  - TRAEFIK_ROUTER_MIDDLEWARES -
+#   #-    A comma separated list of Traefik middleware to run in the configured router.
+#   TRAEFIK_ROUTER_MIDDLEWARES=compress
+#   #@ Host Config
+#   #-  - HOST_HOSTNAME -
+#   #-    The hosts hostname
+#   HOST_HOSTNAME=Server
+#   #-  - PUID -
+#   #-    User to run services as.
+#   PUID=1000
+#   #-  - PGID -
+#   #-    Group to run services as.
+#   PGID=1000
+#   #-  - TZ -
+#   #-    The timezone.
+#   TZ=Etc/UTC
+#   #@ Resource Limits
+#   #-  - MONGO_MEMLIMIT -
+#   #-    Limit Mongo container memory.
+#   MONGO_MEMLIMIT=500m
+#   #-  - OPENSEARCH_MEMLIMIT -
+#   #-    Limit Opensearch container memory.
+#   OPENSEARCH_MEMLIMIT=3g
+#   #-  - GRAYLOG_MEMLIMIT -
+#   #-    Limit Graylog container memory.
+#   GRAYLOG_MEMLIMIT=4g
+#   #@ Container Config
+#   #   - Note: We need to persist x2 sets of data:
+#   #       - MONGODB_DATA_PATH     = Graylog configuration and metadata such as user information or stream configurations.
+#   #       - OPENSEARCH_DATA_PATH  = All the log messages processed by Graylog are stored here. This is a lot of data.
+#   GRAYLOG_CONFIG_PATH=./appdata/graylog-stack/graylog
+#   GRAYLOG_DISK_JOURNAL_PATH=./appdata/graylog-stack/journal
+#   MONGODB_DATA_PATH=./appdata/graylog-stack/mongo
+#   OPENSEARCH_DATA_PATH=./appdata/graylog-stack/opensearch/data
+#   FLUENTBIT_STORAGE_PATH=./appdata/graylog-stack/fluent-bit/storage
+#   FLUENTBIT_CERTS_PATH=./appdata/graylog-stack/fluent-bit/certs
+#   #   - Note: OPENSEARCH_INITIAL_ADMIN_PASSWORD must contain [uppercase, lowercase, numbers, >8]
+#   OPENSEARCH_INITIAL_ADMIN_PASSWORD=Loc1-f505s78tr4haoP9gf
+#   GRAYLOG_PASSWORD_SECRET=MySecretString4Secrets
+#   #   - Note: Set password with: echo -n MySecretPassword123 | sha256sum
+#   GRAYLOG_ROOT_PASSWORD_SHA2=b169822e0e15ac5a2cccc3f740d5f263b501003d183928fc434653ecebd744bc
+#   #   - Note: Fetch list of used subdomains from the swarm-public overlay docker network config
+#   GRAYLOG_TRUSTED_PROXIES=127.0.0.1/32
+#   GRAYLOG_TRANSPORT_EMAIL_ENABLED=true
+#   GRAYLOG_TRANSPORT_EMAIL_PROTOCOL=smtp
+#   GRAYLOG_TRANSPORT_EMAIL_WEB_INTERFACE_URL=http://<host>:9000/
+#   GRAYLOG_TRANSPORT_EMAIL_HOSTNAME=outbound.mailhop.org
+#   GRAYLOG_TRANSPORT_EMAIL_PORT=587
+#   GRAYLOG_TRANSPORT_EMAIL_USE_AUTH=true
+#   GRAYLOG_TRANSPORT_EMAIL_AUTH_USERNAME=xxxxx
+#   GRAYLOG_TRANSPORT_EMAIL_AUTH_PASSWORD=xxxxx
+#   GRAYLOG_TRANSPORT_EMAIL_USE_TLS=true
+#   GRAYLOG_TRANSPORT_EMAIL_USE_SSL=false
+#   GRAYLOG_TRANSPORT_FROM_EMAIL=graylog@example.com
+#   GRAYLOG_MESSAGE_JOURNAL_MAX_SIZE=5gb
+#   GRAYLOG_MESSAGE_JOURNAL_MAX_AGE=12h
+#   GRAYLOG_HTTP_PUBLISHED_PORT=9001
+#   FORWARD_SHARED_KEY=XXXXXXXXXXX
+#   USE_CERTBOT_TO_GENERATE_KEY=false
+#   CERT_FQDN=
+#   CERT_EMAIL=admin@email.com
+#   USE_EXISTING_CERT=false
+#   EXISTING_CERT_PATH=/certs/live/npm-1/fullchain.pem
+#   EXISTING_KEY_PATH=/certs/live/npm-1/privkey.pem
+#   ENABLE_FLUENTBIT_STDOUT_OUTPUT=false
+#   ENABLE_FLUENTBIT_GRAYLOG_GELF_OUTPUT=true
+#   ENABLE_FLUENTBIT_GRAFANA_LOKI_OUTPUT=true
+#   GRAFANA_LOKI_HOST=loki
+#   GRAFANA_LOKI_PORT=3100
+#   GRAFANA_LOKI_URI=/logs/loki/api/v1/push
+#   ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT=false
+#   AWS_COLD_STORAGE_BUCKET_NAME=
+#   AWS_COLD_STORAGE_BUCKET_REGION=
+#   ENABLE_FLUENTBIT_TLS_FORWARD_OUTPUT=false
+#   FLUENTBIT_TLS_FORWARD_OUTPUT_HOST=
+#   FLUENTBIT_TLS_FORWARD_OUTPUT_PORT=
+#   FLUENTBIT_TLS_FORWARD_OUTPUT_SHARED_KEY=
+#   FLUENTBIT_TLS_FORWARD_OUTPUT_VERIFY=off
+#   ENABLE_FLUENTBIT_PT_FORWARD_OUTPUT=false
+#   FLUENTBIT_PT_FORWARD_OUTPUT_HOST=
+#   FLUENTBIT_PT_FORWARD_OUTPUT_PORT=
+# <config_end>
+#
+# ---------------
+# Setup Script
+#
+# <script_start>
+#   > mkdir -p \
+#   >     ${GRAYLOG_CONFIG_PATH:?} \
+#   >     ${GRAYLOG_DISK_JOURNAL_PATH:?} \
+#   >     ${MONGODB_DATA_PATH:?} \
+#   >     ${OPENSEARCH_DATA_PATH:?} \
+#   >     ${FLUENTBIT_STORAGE_PATH:?} \
+#   >     ${FLUENTBIT_CERTS_PATH:?}
+#   > sudo chown 1100:1100 \
+#   >     ${GRAYLOG_CONFIG_PATH:?} \
+#   >     ${GRAYLOG_DISK_JOURNAL_PATH:?}
+#   > sudo chown ${PUID:?}:${PGID:?} \
+#   >     ${MONGODB_DATA_PATH:?}
+#   > sudo chown 1000:1000 \
+#   >     ${OPENSEARCH_DATA_PATH:?}
+#   > sudo chown 0:0 \
+#   >     ${FLUENTBIT_STORAGE_PATH:?} \
+#   >     ${FLUENTBIT_CERTS_PATH:?}
+#   >
+#   > echo && echo ${GRAYLOG_CONFIG_PATH:?} && ls -la ${GRAYLOG_CONFIG_PATH:?}
+#   > echo && echo ${GRAYLOG_DISK_JOURNAL_PATH:?} && ls -la ${GRAYLOG_DISK_JOURNAL_PATH:?}
+#   > echo && echo ${MONGODB_DATA_PATH:?} && ls -la ${MONGODB_DATA_PATH:?}
+#   > echo && echo ${OPENSEARCH_DATA_PATH:?} && ls -la ${OPENSEARCH_DATA_PATH:?}
+#   > echo && echo ${FLUENTBIT_STORAGE_PATH:?} && ls -la ${FLUENTBIT_STORAGE_PATH:?}
+#   > echo && echo ${FLUENTBIT_CERTS_PATH:?} && ls -la ${FLUENTBIT_CERTS_PATH:?}
+# <script_end>
+#
+# ---------------
+---
+version: "3.8"
+
+networks:
+  # Use the previously created public network "swarm-public", shared with other
+  # services that need to be publicly available via this Traefik
+  swarm-public:
+    external: true
+  private-net:
+
+volumes:
+  # Location of the Letsencrypt acme-challenge
+  fluentbit_certbot_data:
+    driver: local
+
+x-deploy-defaults:
+  service:
+    deploy: &deploy_defaults
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+      placement:
+        constraints:
+          - ${PLACEMENT_CONSTRAINT}
+
+x-environment-defaults:
+  service:
+    environment: &environment_defaults
+      TZ: ${TZ:-Etc/UTC}
+      GRAYLOG_TIMEZONE: ${TZ:-Etc/UTC}
+      HOST_HOSTNAME: ${HOST_HOSTNAME}
+      PUID: ${PUID:-99}
+      PGID: ${PGID:-100}
+      CONFIG_VERSION: v3
+
+services:
+  # -- MongoDB --
+  #
+  # MongoDB is a document database with the scalability and flexibility that you want with the
+  # querying and indexing that you need.
+  # Graylog stores configuration in MongoDB
+  #
+  mongo:
+    image: library/mongo:6.0 #>convert_sha256
+    user: ${PUID:-99}:${PGID:-100}
+    deploy:
+      <<: *deploy_defaults
+      resources:
+        limits:
+          memory: ${MONGO_MEMLIMIT:-500m}
+
+    # NETWORK:
+    networks:
+      - private-net
+
+    # VOLUMES:
+    volumes:
+      - type: bind
+        source: ${MONGODB_DATA_PATH:?}
+        target: /data/db
+
+  # -- OpenSearch --
+  #
+  # OpenSearch is used for a broad set of use cases like real-time application monitoring, log analytics,
+  # and website search.
+  # The logs themselves are stored in Opensearch
+  #
+  opensearch:
+    image: opensearchproject/opensearch:2 #>convert_sha256
+    deploy:
+      <<: *deploy_defaults
+      resources:
+        limits:
+          memory: ${OPENSEARCH_MEMLIMIT:-4g}
+
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+
+    # NETWORK:
+    networks:
+      - private-net
+
+    # ENVIRONMENT:
+    environment:
+      <<: *environment_defaults
+      # Application:
+      # -- Config
+      OPENSEARCH_JAVA_OPTS: "-Xms1g -Xmx1g"
+      bootstrap.memory_lock: "true"
+      discovery.type: single-node
+      action.auto_create_index: "false"
+      plugins.security.ssl.http.enabled: "false"
+      plugins.security.disabled: "true"
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: ${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+
+    # VOLUMES:
+    volumes:
+      - type: bind
+        source: ${OPENSEARCH_DATA_PATH:?}
+        target: /usr/share/opensearch/data
+
+  # -- Graylog --
+  #
+  # Graylog Open is a self-managed, SSPL-licensed centralized log management solution
+  # designed for log data aggregation, analysis, and management.
+  #
+  graylog:
+    image: graylog/graylog:6.1.3 #>convert_sha256
+    deploy:
+      <<: *deploy_defaults
+      resources:
+        limits:
+          memory: ${GRAYLOG_MEMLIMIT:-4g}
+      labels:
+        #### -- Enable traefik router for this service
+        - "traefik.enable=true"
+
+        #### -- Define traefik router for this service
+        - "traefik.http.services.swarm-graylog.loadbalancer.server.port=9000"
+        - "traefik.http.routers.swarm-graylog.entrypoints=web"
+        # Configure router domain
+        - "traefik.http.routers.swarm-graylog.rule=Host(`${TRAEFIK_DOMAIN}`)"
+        # Enable auth middleware on this service
+        - "traefik.http.routers.swarm-graylog.middlewares=${TRAEFIK_ROUTER_MIDDLEWARES:-oauth-errors,oauth-auth}"
+
+        #### -- Define homepage configuration
+        - "homepage.group=Observability"
+        - "homepage.name=Graylog"
+        - "homepage.weight=1"
+        - "homepage.icon=https://static-00.iconduck.com/assets.00/graylog-icon-512x495-42etojoa.png"
+        - "homepage.description=Graylog Open is a self-managed, SSPL-licensed centralized log management solution designed for log data aggregation, analysis, and management."
+        - "homepage.href=http://${TRAEFIK_DOMAIN}/"
+    depends_on:
+      - mongo
+      - opensearch
+    entrypoint:
+      - "sh"
+      - "-c"
+      - |
+        mkdir -p "/usr/share/graylog/data/config"
+        if [ ! -f "/usr/share/graylog/data/config/graylog.conf" ]; then
+          wget -q "https://raw.githubusercontent.com/Graylog2/graylog-docker/refs/heads/6.0/config/graylog.conf" \
+            -O "/usr/share/graylog/data/config/graylog.conf"
+        fi
+        if [ ! -f "/usr/share/graylog/data/config/log4j2.xml" ]; then
+          wget -q "https://raw.githubusercontent.com/Graylog2/graylog-docker/refs/heads/6.0/config/log4j2.xml" \
+            -O "/usr/share/graylog/data/config/log4j2.xml"
+        fi
+        wait-for-it opensearch:9200 -- sleep 0.1
+        exec /usr/bin/tini -- /docker-entrypoint.sh
+
+    # NETWORK:
+    networks:
+      - swarm-public
+      - private-net
+    ports:
+      # GELF TCP
+      - target: 12201
+        published: 12201
+        protocol: tcp
+        mode: host
+      # GELF UDP
+      - target: 12201
+        published: 12201
+        protocol: udp
+        mode: host
+      # Syslog TCP
+      - target: 2514
+        published: 2514
+        protocol: tcp
+        mode: host
+      # Syslog UDP
+      - target: 2514
+        published: 2514
+        protocol: udp
+        mode: host
+
+    # ENVIRONMENT:
+    environment:
+      <<: *environment_defaults
+      # Application:
+      # -- Config
+      #   REF: https://go2docs.graylog.org/current/downloading_and_installing_graylog/docker_installation.htm?TocPath=Installing%20Graylog%7C_____2#Configuration
+      GRAYLOG_PASSWORD_SECRET: ${GRAYLOG_PASSWORD_SECRET:?}
+      GRAYLOG_ROOT_PASSWORD_SHA2: ${GRAYLOG_ROOT_PASSWORD_SHA2}
+      GRAYLOG_TRUSTED_PROXIES: ${GRAYLOG_TRUSTED_PROXIES:-}
+      # TODO: Add email config?? Maybe we don't need it?
+      # GRAYLOG_TRANSPORT_EMAIL_ENABLED: ${GRAYLOG_TRANSPORT_EMAIL_ENABLED}
+      # GRAYLOG_TRANSPORT_EMAIL_PROTOCOL: ${GRAYLOG_TRANSPORT_EMAIL_PROTOCOL}
+      # GRAYLOG_TRANSPORT_EMAIL_WEB_INTERFACE_URL: ${GRAYLOG_TRANSPORT_EMAIL_WEB_INTERFACE_URL}
+      # GRAYLOG_TRANSPORT_EMAIL_HOSTNAME: ${GRAYLOG_TRANSPORT_EMAIL_HOSTNAME}
+      # GRAYLOG_TRANSPORT_EMAIL_PORT: ${GRAYLOG_TRANSPORT_EMAIL_PORT}
+      # GRAYLOG_TRANSPORT_EMAIL_USE_AUTH: ${GRAYLOG_TRANSPORT_EMAIL_USE_AUTH}
+      # GRAYLOG_TRANSPORT_EMAIL_AUTH_USERNAME: ${GRAYLOG_TRANSPORT_EMAIL_AUTH_USERNAME}
+      # GRAYLOG_TRANSPORT_EMAIL_AUTH_PASSWORD: ${GRAYLOG_TRANSPORT_EMAIL_AUTH_PASSWORD}
+      # GRAYLOG_TRANSPORT_EMAIL_USE_TLS: ${GRAYLOG_TRANSPORT_EMAIL_USE_TLS}
+      # GRAYLOG_TRANSPORT_EMAIL_USE_SSL: ${GRAYLOG_TRANSPORT_EMAIL_USE_SSL}
+      # GRAYLOG_TRANSPORT_FROM_EMAIL: ${GRAYLOG_TRANSPORT_FROM_EMAIL}
+      # GRAYLOG_TRANSPORT_SUBJECT_PREFIX: "[graylog]"
+      GRAYLOG_ELASTICSEARCH_HOSTS: "http://opensearch:9200"
+      GRAYLOG_MONGODB_URI: "mongodb://mongo:27017/graylog"
+      GRAYLOG_HTTP_BIND_ADDRESS: "0.0.0.0:9000"
+      GRAYLOG_HTTP_EXTERNAL_URI: "http://localhost:9000/"
+      GRAYLOG_MESSAGE_JOURNAL_MAX_SIZE: ${GRAYLOG_MESSAGE_JOURNAL_MAX_SIZE:-10gb}
+      GRAYLOG_MESSAGE_JOURNAL_MAX_AGE: ${GRAYLOG_MESSAGE_JOURNAL_MAX_AGE:-24h}
+
+    # VOLUMES:
+    volumes:
+      - type: bind
+        source: ${GRAYLOG_CONFIG_PATH:?}
+        target: /usr/share/graylog/data
+      - type: bind
+        source: ${GRAYLOG_DISK_JOURNAL_PATH:?}
+        target: /usr/share/graylog/data/journal
+
+  # -- Fluent-Bit --
+  #
+  # Fluent Bit is a super fast, lightweight, and highly scalable logging and metrics processor and forwarder.
+  # It is the preferred choice for cloud and containerized environments.
+  #
+  gl-fluent-bit:
+    image: ghcr.io/josh5/graylog-fluent-bit-input:latest
+    deploy:
+      <<: *deploy_defaults
+      resources:
+        limits:
+          memory: 400m
+    depends_on:
+      - graylog
+      - proxy
+    entrypoint:
+      - "sh"
+      - "-c"
+      - |
+        wait-for-it graylog:9000 --timeout=60 -- sleep 5
+        wait-for-it gl-proxy:80 --timeout=20 -- sleep 5
+        exec /usr/bin/tini -- /entrypoint.sh
+
+    # NETWORK:
+    networks:
+      - swarm-public
+      - private-net
+    ports:
+      # Fluent Bit HTTP server (can be used for health checks)
+      - target: 2020
+        published: 2020
+        protocol: tcp
+        mode: host
+      # Fluent Bit log ingest ports
+      - target: 24280
+        published: 24280
+        protocol: tcp
+        mode: host
+      # Forward input configured with TLS certificates
+      - target: 24224
+        published: 24224
+        protocol: tcp
+        mode: host
+      - target: 24224
+        published: 24224
+        protocol: udp
+        mode: host
+      # Forward input configured PT only (for local docker logs, etc.)
+      - target: 24228
+        published: 24228
+        protocol: tcp
+        mode: host
+      - target: 24228
+        published: 24228
+        protocol: udp
+        mode: host
+
+    # ENVIRONMENT:
+    environment:
+      <<: *environment_defaults
+      # Application:
+      # -- Config
+      HOST_HOSTNAME: ${HOST_HOSTNAME}
+      FLUENT_BIT_TAG_PREFIX: ${FLUENT_BIT_TAG_PREFIX:-flb_glf.}
+      FLUENT_STORAGE_PATH: /fluent-bit-data/storage
+      FORWARD_SHARED_KEY: ${FORWARD_SHARED_KEY:-}
+      ENABLE_FORWARD_TLS: "true"
+      CERTIFICATES_DIRECTORY: /fluent-bit-data/certs
+      USE_EXISTING_CERT: ${USE_EXISTING_CERT:-false}
+      EXISTING_CERT_PATH: ${EXISTING_CERT_PATH:-}
+      EXISTING_KEY_PATH: ${EXISTING_KEY_PATH:-}
+      USE_CERTBOT_TO_GENERATE_KEY: ${USE_CERTBOT_TO_GENERATE_KEY:-false}
+      CERT_FQDN: ${CERT_FQDN:-}
+      CERT_EMAIL: ${CERT_EMAIL:-}
+      ENABLE_STDOUT_OUTPUT: ${ENABLE_FLUENTBIT_STDOUT_OUTPUT:?}
+      ENABLE_GRAYLOG_GELF_OUTPUT: ${ENABLE_FLUENTBIT_GRAYLOG_GELF_OUTPUT:-true}
+      ENABLE_GRAFANA_LOKI_OUTPUT: ${ENABLE_FLUENTBIT_GRAFANA_LOKI_OUTPUT:-false}
+      GRAFANA_LOKI_HOST: ${GRAFANA_LOKI_HOST:-}
+      GRAFANA_LOKI_PORT: ${GRAFANA_LOKI_PORT:-}
+      GRAFANA_LOKI_URI: ${GRAFANA_LOKI_URI:-}
+      ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT: ${ENABLE_S3_BUCKET_COLD_STORAGE_OUTPUT}
+      AWS_COLD_STORAGE_BUCKET_NAME: ${AWS_COLD_STORAGE_BUCKET_NAME}
+      AWS_COLD_STORAGE_BUCKET_REGION: ${AWS_COLD_STORAGE_BUCKET_REGION}
+      ENABLE_TLS_FORWARD_OUTPUT: ${ENABLE_FLUENTBIT_TLS_FORWARD_OUTPUT:-false}
+      TLS_FORWARD_OUTPUT_HOST: ${FLUENTBIT_TLS_FORWARD_OUTPUT_HOST:-}
+      TLS_FORWARD_OUTPUT_PORT: ${FLUENTBIT_TLS_FORWARD_OUTPUT_PORT:-}
+      TLS_FORWARD_OUTPUT_SHARED_KEY: ${FLUENTBIT_TLS_FORWARD_OUTPUT_SHARED_KEY:-}
+      TLS_FORWARD_OUTPUT_VERIFY: ${FLUENTBIT_TLS_FORWARD_OUTPUT_VERIFY:-off}
+      ENABLE_PT_FORWARD_OUTPUT: ${ENABLE_FLUENTBIT_PT_FORWARD_OUTPUT:-false}
+      PT_FORWARD_OUTPUT_HOST: ${FLUENTBIT_PT_FORWARD_OUTPUT_HOST:-}
+      PT_FORWARD_OUTPUT_PORT: ${FLUENTBIT_PT_FORWARD_OUTPUT_PORT:-}
+
+    # VOLUMES:
+    volumes:
+      - type: bind
+        source: ${FLUENTBIT_STORAGE_PATH:?}
+        target: /fluent-bit-data/storage
+      - type: bind
+        source: ${FLUENTBIT_CERTS_PATH:?}
+        target: /fluent-bit-data/certs
+      - type: volume
+        source: fluentbit_certbot_data
+        target: /var/www/certbot
+
+  # -- REVERSE PROXY --
+  gl-proxy:
+    image: library/nginx:latest
+    deploy:
+      <<: *deploy_defaults
+      restart_policy:
+        condition: on-failure
+        delay: 30s
+      resources:
+        limits:
+          memory: 50m
+    entrypoint:
+      - "/bin/sh"
+      - "-c"
+      - |
+        set -e
+
+        wait_for_service() {
+            url="$$1"
+            retries=60
+            count=1
+            echo "Waiting for $$url to be available..."
+            while [ $$count -le $$retries ]; do
+                if curl --silent --fail "$$url" >/dev/null; then
+                    echo "  - $$url is available."
+                    return 0
+                fi
+                count=$$((count + 1))
+                sleep 1
+            done
+            echo "  - $$url is still not available after $$retries attempts. Exiting."
+            return 1
+        }
+
+        # Wait for these endpoints before starting
+        wait_for_service "http://graylog:9000" || exit 1
+
+        mkdir -p /var/www/certbot
+        cat << 'EOF' > /etc/nginx/conf.d/default.conf
+        server {
+            listen       80;
+            server_name  localhost;
+
+            location /.well-known/acme-challenge/ {
+                root /var/www/certbot;
+            }
+
+            # Proxy all other requests to Graylog
+            location / {
+                proxy_pass http://graylog:9000;
+                
+                # Preserve the client's original IP address
+                proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $$scheme;
+            }
+        }
+        EOF
+        cat /etc/nginx/conf.d/default.conf
+        touch /var/www/certbot/.proxy-running
+
+        echo "Running Nginx entrypoint..."
+        /docker-entrypoint.sh nginx -g "daemon off;" 
+        echo
+
+    # NETWORK:
+    networks:
+      - private-net
+    ports:
+      - target: 80
+        published: ${GRAYLOG_HTTP_PUBLISHED_PORT:-9001}
+        mode: host
+
+    # VOLUMES:
+    volumes:
+      - type: volume
+        source: fluentbit_certbot_data
+        target: /var/www/certbot
