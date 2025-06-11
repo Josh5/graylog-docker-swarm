@@ -5,8 +5,8 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Friday, 6th December 2024 9:20:34 am
-# Modified By: Josh5 (jsunnex@gmail.com)
+# Last Modified: Wednesday, 11th June 2025 12:46:39 pm
+# Modified By: Josh.5 (jsunnex@gmail.com)
 ###
 set -eu
 
@@ -181,6 +181,7 @@ pipeline:
       store_dir: ${FLUENT_STORAGE_PATH:?}/s3_buffer
       upload_timeout: 10m
       retry_limit: 5
+      workers: 2
 EOF
     sed -i "s/^\(\s*\)#-\( ${yaml_file:?}\)/\1- ${yaml_file:?}/" /etc/fluent-bit-custom/fluent-bit.yaml
     echo
