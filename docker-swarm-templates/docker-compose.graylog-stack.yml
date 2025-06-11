@@ -489,10 +489,13 @@ services:
             return 1
         }
 
+        # Remove stale file if it exists
+        mkdir -p /var/www/certbot
+        rm -f /var/www/certbot/.proxy-running
+
         # Wait for these endpoints before starting
         wait_for_service "http://graylog:9000" || exit 1
 
-        mkdir -p /var/www/certbot
         cat << 'EOF' > /etc/nginx/conf.d/default.conf
         server {
             listen       80;
@@ -513,10 +516,18 @@ services:
         }
         EOF
         cat /etc/nginx/conf.d/default.conf
+
+        echo "Launching Nginx in background..."
+        /docker-entrypoint.sh nginx -g "daemon off;" &
+
+        echo "Waiting 10 seconds for Nginx to stabilize..."
+        sleep 10
+
+        echo "Touching .proxy-running to signal readiness"
         touch /var/www/certbot/.proxy-running
 
-        echo "Running Nginx entrypoint..."
-        /docker-entrypoint.sh nginx -g "daemon off;" 
+        echo "Waiting for Nginx to exit..."
+        wait
         echo
 
     # NETWORK:

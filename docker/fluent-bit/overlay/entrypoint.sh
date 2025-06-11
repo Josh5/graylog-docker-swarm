@@ -5,8 +5,8 @@
 # File Created: Friday, 18th October 2024 5:05:51 pm
 # Author: Josh5 (jsunnex@gmail.com)
 # -----
-# Last Modified: Friday, 6th December 2024 9:20:34 am
-# Modified By: Josh5 (jsunnex@gmail.com)
+# Last Modified: Thursday, 12th June 2025 11:03:22 am
+# Modified By: Josh.5 (jsunnex@gmail.com)
 ###
 set -eu
 
@@ -86,6 +86,7 @@ if [[ -n "${ENABLE_FORWARD_TLS:-}" && "${ENABLE_FORWARD_TLS,,}" =~ ^(true|t)$ ]]
             while [ $i -le 60 ]; do
                 if [ -f "/var/www/certbot/.proxy-running" ]; then
                     print_log "info" "  - The Nginx proxy container is running"
+                    rm -f "/var/www/certbot/.proxy-running"
                     break
                 fi
                 print_log "info" "  - Nginx proxy container check #$i - Not yet running. Recheck in 5 seconds..."
